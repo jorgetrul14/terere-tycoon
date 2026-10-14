@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tereré Tycoon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lilita+One&display=swap">
+<style>
+/* Layout: una sola columna tipo app de celular. Primero el saldo, luego la guampa para tocar,
+   después los premios por anuncio (dorado) y las mejoras (verde yerba). */
+:root {
+  --bg: #EDF3EA;
+  --panel: #FFFFFF;
+  --panel-2: #E1EBDD;
+  --fg: #13261A;
+  --muted: #4B6352;
+  --line: #C9D8C5;
+  --yerba: #2E7A3D;
+  --yerba-fg: #FFFFFF;
+  --ice: #1F83A6;
+  --gold: #E3A41A;
+  --gold-fg: #2B1D00;
+  --scrim: rgba(8, 16, 11, 0.62);
+  --ad-a: #1F5F2E;
+  --ad-b: #1B6E8E;
+  --font-display: 'Lilita One', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1A13;
+    --panel: #162619;
+    --panel-2: #1D3123;
+    --fg: #E7F2E4;
+    --muted: #9CB5A2;
+    --line: #2A4230;
+    --yerba: #5CC46D;
+    --yerba-fg: #0A1A0E;
+    --ice: #6CCBEA;
+    --gold: #F0BC3E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1A13;
+  --panel: #162619;
+  --panel-2: #1D3123;
+  --fg: #E7F2E4;
+  --muted: #9CB5A2;
+  --line: #2A4230;
+  --yerba: #5CC46D;
+  --yerba-fg: #0A1A0E;
+  --ice: #6CCBEA;
+  --gold: #F0BC3E;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.45;
+  padding-block: 1rem 2.5rem;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app {
+  max-width: 30rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+:focus-visible { outline: 3px solid var(--ice); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+h1 { font: 400 1.6rem/1 var(--font-display); letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
+h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01em; text-wrap: balance; }
+.chip {
+  font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px;
+  background: var(--panel-2); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+
+.balance { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+.label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.coins {
+  font: 400 clamp(2.6rem, 13vw, 3.7rem)/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: baseline; gap: 0.35rem; max-width: 100%; overflow-wrap: anywhere;
+}
+.coins small { font: 700 0.5em var(--font-body); color: var(--yerba); }
+.rates { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.2rem 1.1rem; color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.rates b { color: var(--fg); }
+.boost { background: var(--gold); color: var(--gold-fg); font-weight: 700; font-size: 0.85rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-variant-numeric: tabular-nums; }
+
+.tap-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.tap {
+  width: min(66vw, 15rem); aspect-ratio: 1; max-width: 100%;
+  border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 0.45rem var(--panel), 0 0 0 2px var(--line);
+  display: grid; place-items: center;
+  touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease-out;
+}
+.tap:active { transform: scale(0.95); }
+.tap svg { width: 76%; height: auto; pointer-events: none; }
+.hint { margin: 0; color: var(--muted); font-size: 0.875rem; }
+.float {
+  position: absolute; pointer-events: none; z-index: 2;
+  font: 400 1.5rem/1 var(--font-display); color: var(--yerba);
+  animation: rise 0.85s ease-out forwards;
+}
+@keyframes rise {
+  from { opacity: 1; transform: translate(-50%, -50%); }
+  to { opacity: 0; transform: translate(-50%, -230%); }
+}
+
+.block { display: flex; flex-direction: column; gap: 0.7rem; }
+.list { display: flex; flex-direction: column; gap: 0.6rem; }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 1rem;
+  padding: 0.85rem 0.9rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: center;
+}
+.card.ready { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.card h3 { margin: 0; font-size: 1rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; }
+.card h3 .lv { font-size: 0.75rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card p { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; }
+.bar { height: 0.5rem; border-radius: 999px; background: var(--panel-2); overflow: hidden; margin-top: 0.55rem; }
+.bar i { display: block; height: 100%; width: 0; background: var(--gold); }
+
+.btn {
+  min-height: 2.75rem; padding: 0.55rem 0.9rem; border-radius: 0.75rem; border: 0; cursor: pointer;
+  font: 700 0.95rem/1.15 var(--font-body);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  touch-action: manipulation; font-variant-numeric: tabular-nums;
+}
+.btn-ad { background: var(--gold); color: var(--gold-fg); }
+.btn-buy { background: var(--yerba); color: var(--yerba-fg); min-width: 6.75rem; flex-direction: column; gap: 0.1rem; }
+.btn-buy small { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+.btn-plain { background: var(--panel-2); color: var(--fg); }
+.btn:disabled { background: var(--panel-2); color: var(--muted); cursor: not-allowed; }
+.btn:disabled svg { opacity: 0.45; }
+.btn-wide { width: 100%; }
+
+.foot { color: var(--muted); font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; }
+.foot p { margin: 0; max-width: 65ch; }
+.link { background: none; border: 0; padding: 0.4rem 0; color: var(--muted); font: 600 0.82rem var(--font-body); text-decoration: underline; cursor: pointer; }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 10; background: var(--scrim);
+  display: grid; place-items: center;
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.overlay.top-layer { z-index: 20; }
+.dialog {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 1.25rem; padding: 1.1rem;
+  width: 100%; max-width: 24rem; display: flex; flex-direction: column; gap: 0.9rem;
+}
+.dialog h2 { font-size: 1.3rem; }
+.dialog p { margin: 0; color: var(--muted); }
+.dialog .stack { display: flex; flex-direction: column; gap: 0.5rem; }
+.ad-stage {
+  aspect-ratio: 16 / 9; max-width: 100%; border-radius: 0.8rem;
+  background: linear-gradient(135deg, var(--ad-a), var(--ad-b));
+  display: grid; place-items: center; text-align: center; padding: 1rem; color: #FFFFFF;
+}
+.ad-stage strong { font: 400 1.15rem/1.2 var(--font-display); text-wrap: balance; }
+.ad-stage span { display: block; font-size: 0.8rem; opacity: 0.9; margin-top: 0.25rem; }
+.ad-count { font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 30;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  width: max-content; max-width: calc(100% - 2rem);
+  background: var(--fg); color: var(--bg); font-weight: 700; font-size: 0.9rem;
+  padding: 0.6rem 1rem; border-radius: 0.8rem; text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tap { transition: none; }
+  .tap:active { transform: none; }
+  .float { display: none; }
+}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <header class="top">
+    <h1>Tereré Tycoon</h1>
+    <span class="chip" title="Cantidad de anuncios de prueba vistos">Anuncios vistos: <span id="adsCount">0</span></span>
+  </header>
+
+  <section class="balance">
+    <span class="label">Tus guaraníes</span>
+    <div class="coins"><small>₲</small><span id="coins">0</span></div>
+    <div class="rates">
+      <span><b id="perTap">₲ 1</b> por toque</span>
+      <span><b id="perSec">₲ 0</b> por segundo</span>
+    </div>
+    <span class="boost" id="boost" hidden>Ganancias x2 · <span id="boostLeft">2:00</span></span>
+  </section>
+
+  <section class="tap-wrap" id="tapWrap">
+    <button class="tap" id="tap" type="button" aria-label="Tocar la guampa para ganar guaraníes">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <ellipse cx="100" cy="186" rx="58" ry="8" fill="rgba(0,0,0,0.2)"/>
+        <path d="M48 62 H152 L140 164 Q138 179 122 179 H78 Q62 179 60 164 Z" fill="#9B6A3C"/>
+        <path d="M60 96 H140 L137 160 Q136 170 126 170 H74 Q64 170 63 160 Z" fill="#B07C4A" opacity="0.55"/>
+        <path d="M48 62 H152 L149 90 H51 Z" fill="#C9CED2"/>
+        <path d="M48 62 H152 L151 70 H49 Z" fill="#E6E9EB"/>
+        <ellipse cx="100" cy="62" rx="52" ry="12" fill="#3F8F4A"/>
+        <ellipse cx="100" cy="62" rx="44" ry="8" fill="#2F7A3B"/>
+        <rect x="64" y="38" width="28" height="28" rx="6" fill="#BFEAF7" transform="rotate(-12 78 52)"/>
+        <rect x="96" y="30" width="26" height="26" rx="6" fill="#D6F2FB" transform="rotate(10 109 43)"/>
+        <rect x="118" y="44" width="22" height="22" rx="5" fill="#A9DDEF" transform="rotate(-6 129 55)"/>
+        <path d="M134 14 L108 100" stroke="#6F777D" stroke-width="7" stroke-linecap="round"/>
+        <path d="M134 14 L108 100" stroke="#E4E8EA" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="136" cy="13" rx="10" ry="4.5" fill="#E4E8EA" stroke="#6F777D" stroke-width="1.5" transform="rotate(20 136 13)"/>
+      </svg>
+    </button>
+    <p class="hint">Tocá la guampa para ganar guaraníes</p>
+  </section>
+
+  <section class="block" aria-labelledby="h-ads">
+    <h2 id="h-ads">Premios por ver anuncios</h2>
+    <div class="list">
+      <div class="card" id="chestCard">
+        <div>
+          <h3>Cofre sorpresa</h3>
+          <p id="chestText">Se abre en 0:45</p>
+          <div class="bar"><i id="chestFill"></i></div>
+        </div>
+        <button class="btn btn-ad" id="chestBtn" type="button" disabled>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span id="chestBtnText">Esperá</span>
+        </button>
+      </div>
+      <div class="card">
+        <div>
+          <h3>Ganancias x2</h3>
+          <p>Duplican tus toques y tu ingreso por 2 minutos.</p>
+        </div>
+        <button class="btn btn-ad" id="boostBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Ver anuncio</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="h-up">
+    <h2 id="h-up">Mejoras</h2>
+    <div class="list" id="upgrades"></div>
+  </section>
+
+  <footer class="foot">
+    <p id="adNote">Los anuncios de este juego son de prueba. En la app para Android se reemplazan por anuncios reales de AdMob.</p>
+    <button class="link" id="reset" type="button">Reiniciar partida</button>
+  </footer>
+</main>
+
+<div class="overlay" id="offlineModal" role="dialog" aria-modal="true" aria-labelledby="offTitle" hidden>
+  <div class="dialog">
+    <h2 id="offTitle">Mientras no estabas</h2>
+    <p id="offText"></p>
+    <div class="stack">
+      <button class="btn btn-buy btn-wide" id="offTake" type="button"></button>
+      <button class="btn btn-ad btn-wide" id="offDouble" type="button">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+        <span id="offDoubleText"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay top-layer" id="adModal" role="dialog" aria-modal="true" aria-labelledby="adTitle" hidden>
+  <div class="dialog">
+    <h2 id="adTitle">Anuncio de prueba</h2>
+    <div class="ad-stage"><div><strong>Acá se muestra el video del anunciante</strong><span>En la app real aparece un anuncio de AdMob</span></div></div>
+    <div class="bar"><i id="adFill"></i></div>
+    <p class="ad-count" id="adCount">Recompensa en 5 s</p>
+    <div class="stack">
+      <button class="btn btn-ad btn-wide" id="adClaim" type="button" hidden>Reclamar premio</button>
+      <button class="btn btn-plain btn-wide" id="adClose" type="button">Cerrar sin premio</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var KEY = 'terere-tycoon-v1';
+  var CHEST_SECONDS = 45;
+  var BOOST_MS = 120000;
+  var BOOST_MAX_MS = 600000;
+  var OFFLINE_CAP = 3 * 3600;
+  var AD_SECONDS = 5;
+
+  var UPGRADES = [
+    { id: 'hielo', name: 'Más hielo', desc: '+1 ₲ por toque', kind: 'tap', amount: 1, base: 25, growth: 1.28 },
+    { id: 'guampa', name: 'Guampa grande', desc: '+6 ₲ por toque', kind: 'tap', amount: 6, base: 350, growth: 1.35 },
+    { id: 'vendedor', name: 'Vendedor ambulante', desc: '+1 ₲ por segundo', kind: 'auto', amount: 1, base: 60, growth: 1.22 },
+    { id: 'kiosco', name: 'Kiosco de la esquina', desc: '+8 ₲ por segundo', kind: 'auto', amount: 8, base: 600, growth: 1.25 },
+    { id: 'puesto', name: 'Puesto en la costanera', desc: '+55 ₲ por segundo', kind: 'auto', amount: 55, base: 6500, growth: 1.28 }
+  ];
+
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- Estado y guardado ---------- */
+  function fresh() {
+    return { coins: 0, total: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now() };
+  }
+  function load() {
+    var s = fresh();
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        ['coins', 'total', 'boostUntil', 'chest', 'ads', 'lastSeen'].forEach(function (k) {
+          if (typeof o[k] === 'number' && isFinite(o[k])) s[k] = o[k];
+        });
+        if (o.lv && typeof o.lv === 'object') {
+          UPGRADES.forEach(function (u) {
+            var n = o.lv[u.id];
+            if (typeof n === 'number' && isFinite(n) && n >= 0) s.lv[u.id] = Math.floor(n);
+          });
+        }
+      }
+    } catch (e) {}
+    return s;
+  }
+  var S = load();
+  function save() {
+    S.lastSeen = Date.now();
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  }
+
+  /* ---------- Cuentas del juego ---------- */
+  function level(u) { return S.lv[u.id] || 0; }
+  function tapBase() {
+    var n = 1;
+    UPGRADES.forEach(function (u) { if (u.kind === 'tap') n += level(u) * u.amount; });
+    return n;
+  }
+  function autoBase() {
+    var n = 0;
+    UPGRADES.forEach(function (u) { if (u.kind === 'auto') n += level(u) * u.amount; });
+    return n;
+  }
+  function mult() { return Date.now() < S.boostUntil ? 2 : 1; }
+  function cost(u) { return Math.floor(u.base * Math.pow(u.growth, level(u))); }
+  function chestReward() { return Math.max(150, Math.round(autoBase() * 60 + tapBase() * 25)); }
+
+  function fmt(n) {
+    n = Math.floor(n);
+    if (n < 1e6) return n.toLocaleString('es-PY');
+    try { return new Intl.NumberFormat('es', { notation: 'compact', maximumFractionDigits: 2 }).format(n); }
+    catch (e) { return String(n); }
+  }
+  function mmss(sec) {
+    sec = Math.max(0, Math.ceil(sec));
+    return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  }
+  function awayText(sec) {
+    return sec < 3600 ? Math.max(1, Math.round(sec / 60)) + ' min' : (sec / 3600).toFixed(1).replace('.', ',') + ' h';
+  }
+
+  /* ---------- Elementos ---------- */
+  var coinsEl = $('coins'), perTapEl = $('perTap'), perSecEl = $('perSec'), adsCountEl = $('adsCount');
+  var boostEl = $('boost'), boostLeftEl = $('boostLeft');
+  var chestCard = $('chestCard'), chestText = $('chestText'), chestFill = $('chestFill');
+  var chestBtn = $('chestBtn'), chestBtnText = $('chestBtnText'), boostBtn = $('boostBtn');
+  var tapBtn = $('tap'), tapWrap = $('tapWrap'), toastEl = $('toast');
+  var offlineModal = $('offlineModal'), offText = $('offText'), offTake = $('offTake');
+  var offDouble = $('offDouble'), offDoubleText = $('offDoubleText');
+  var adModal = $('adModal'), adFill = $('adFill'), adCount = $('adCount');
+  var adClaim = $('adClaim'), adClose = $('adClose');
+
+  var toastTimer = 0;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.hidden = true; }, 3200);
+  }
+
+  /* ---------- Capa de anuncios ----------
+     Todo el juego pide anuncios con Ads.showRewarded(), que devuelve:
+       'rewarded'    el jugador vio el anuncio completo y gana el premio
+       'closed'      cerró el anuncio antes de tiempo (sin premio)
+       'unavailable' no había anuncio disponible (sin internet o sin anuncio para mostrar)
+     Dentro de la app de Android usa AdMob. En un navegador usa un anuncio simulado. */
+
+  // IDs de prueba oficiales de Google. Antes de publicar se cambian por los tuyos
+  // y ADMOB_TESTING pasa a false.
+  var ADMOB_TESTING = true;
+  var REWARDED_AD_ID = 'ca-app-pub-3940256099942544/5224354917';
+
+  var Cap = window.Capacitor;
+  var native = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
+  var AdMob = native ? ((Cap.Plugins && Cap.Plugins.AdMob) || Cap.registerPlugin('AdMob')) : null;
+
+  var admobReady = false, adLoaded = false, adLoading = null;
+
+  function admobInit() {
+    if (admobReady) return Promise.resolve();
+    return AdMob.initialize({ initializeForTesting: ADMOB_TESTING })
+      .then(function () { admobReady = true; })
+      .catch(function () {});
+  }
+
+  // Deja un anuncio cargado de antemano para que aparezca sin demora.
+  function admobPreload() {
+    if (!native) return Promise.resolve(false);
+    if (adLoaded) return Promise.resolve(true);
+    if (adLoading) return adLoading;
+    adLoading = admobInit()
+      .then(function () { return AdMob.prepareRewardVideoAd({ adId: REWARDED_AD_ID, isTesting: ADMOB_TESTING }); })
+      .then(function () { adLoaded = true; return true; })
+      .catch(function () { adLoaded = false; return false; })
+      .then(function (ok) { adLoading = null; return ok; });
+    return adLoading;
+  }
+
+  function showNative() {
+    return admobPreload().then(function (ok) {
+      if (!ok) return 'unavailable';
+      return new Promise(function (resolve) {
+        var earned = false, done = false, handles = [];
+        function finish(result) {
+          if (done) return;
+          done = true;
+          handles.forEach(function (h) { try { h.remove(); } catch (e) {} });
+          adLoaded = false;
+          admobPreload();
+          resolve(result);
+        }
+        Promise.all([
+          AdMob.addListener('onRewardedVideoAdReward', function () { earned = true; }),
+          AdMob.addListener('onRewardedVideoAdDismissed', function () { finish(earned ? 'rewarded' : 'closed'); }),
+          AdMob.addListener('onRewardedVideoAdFailedToShow', function () { finish('unavailable'); })
+        ]).then(function (hs) {
+          handles = hs;
+          return AdMob.showRewardVideoAd();
+        }).catch(function () { finish('unavailable'); });
+      });
+    });
+  }
+
+  function showTestAd() {
+    return new Promise(function (resolve) {
+      var returnFocus = document.activeElement;
+      var t0 = performance.now();
+      var finished = false;
+      adModal.hidden = false;
+      adClaim.hidden = true;
+      adClose.hidden = false;
+      adFill.style.width = '0%';
+      adCount.textContent = 'Recompensa en ' + AD_SECONDS + ' s';
+      adClose.focus();
+
+      var iv = setInterval(function () {
+        var p = Math.min(1, (performance.now() - t0) / (AD_SECONDS * 1000));
+        adFill.style.width = (p * 100) + '%';
+        if (p < 1) {
+          adCount.textContent = 'Recompensa en ' + Math.ceil(AD_SECONDS * (1 - p)) + ' s';
+        } else {
+          clearInterval(iv);
+          adCount.textContent = 'Anuncio terminado';
+          adClose.hidden = true;
+          adClaim.hidden = false;
+          adClaim.focus();
+        }
+      }, 100);
+
+      function onKey(e) { if (e.key === 'Escape' && adClaim.hidden) end('closed'); }
+      function end(result) {
+        if (finished) return;
+        finished = true;
+        clearInterval(iv);
+        document.removeEventListener('keydown', onKey);
+        adModal.hidden = true;
+        if (returnFocus && returnFocus.focus) { try { returnFocus.focus(); } catch (e) {} }
+        resolve(result);
+      }
+      adClose.onclick = function () { end('closed'); };
+      adClaim.onclick = function () { end('rewarded'); };
+      document.addEventListener('keydown', onKey);
+    });
+  }
+
+  var Ads = {
+    showRewarded: function (placement) { return native ? showNative() : showTestAd(); }
+  };
+
+  var adBusy = false;
+  function watch(placement, onReward) {
+    if (adBusy) return Promise.resolve(false);
+    adBusy = true;
+    render();
+    if (native && !adLoaded) toast('Cargando anuncio…');
+    return Ads.showRewarded(placement).then(function (result) {
+      adBusy = false;
+      if (result === 'rewarded') { S.ads += 1; onReward(); save(); }
+      else if (result === 'closed') { toast('Cerraste el anuncio antes de tiempo, así que no hay premio.'); }
+      else { toast('No hay un anuncio disponible ahora. Probá de nuevo en un rato.'); }
+      render();
+      return result === 'rewarded';
+    });
+  }
+
+  /* ---------- Mejoras ---------- */
+  var upRefs = {};
+  function buildUpgrades() {
+    var host = $('upgrades');
+    UPGRADES.forEach(function (u) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      var info = document.createElement('div');
+      var h3 = document.createElement('h3');
+      var nm = document.createElement('span'); nm.textContent = u.name;
+      var lv = document.createElement('span'); lv.className = 'lv';
+      h3.appendChild(nm); h3.appendChild(lv);
+      var p = document.createElement('p'); p.textContent = u.desc;
+      info.appendChild(h3); info.appendChild(p);
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn btn-buy';
+      var sm = document.createElement('small'); sm.textContent = 'Comprar';
+      var cs = document.createElement('span');
+      btn.appendChild(sm); btn.appendChild(cs);
+      btn.addEventListener('click', function () { buy(u); });
+      card.appendChild(info); card.appendChild(btn);
+      host.appendChild(card);
+      upRefs[u.id] = { lv: lv, cost: cs, btn: btn };
+    });
+  }
+  function buy(u) {
+    var c = cost(u);
+    if (S.coins < c) return;
+    S.coins -= c;
+    S.lv[u.id] = level(u) + 1;
+    save();
+    render();
+  }
+
+  /* ---------- Pantalla ---------- */
+  function render() {
+    coinsEl.textContent = fmt(S.coins);
+    perTapEl.textContent = '₲ ' + fmt(tapBase() * mult());
+    perSecEl.textContent = '₲ ' + fmt(autoBase() * mult());
+    adsCountEl.textContent = S.ads;
+
+    var left = S.boostUntil - Date.now();
+    if (left > 0) { boostEl.hidden = false; boostLeftEl.textContent = mmss(left / 1000); }
+    else { boostEl.hidden = true; }
+
+    var ready = S.chest >= CHEST_SECONDS;
+    chestFill.style.width = Math.min(100, S.chest / CHEST_SECONDS * 100) + '%';
+    chestCard.classList.toggle('ready', ready);
+    chestText.textContent = ready ? 'Listo para abrir' : 'Se abre en ' + mmss(CHEST_SECONDS - S.chest);
+    chestBtn.disabled = !ready || adBusy;
+    chestBtnText.textContent = ready ? 'Abrir +₲ ' + fmt(chestReward()) : 'Esperá';
+    boostBtn.disabled = adBusy;
+
+    UPGRADES.forEach(function (u) {
+      var r = upRefs[u.id], c = cost(u);
+      r.lv.textContent = 'Nv ' + level(u);
+      r.cost.textContent = '₲ ' + fmt(c);
+      r.btn.disabled = S.coins < c;
+    });
+  }
+
+  /* ---------- Toques ---------- */
+  function spawnFloat(text, x, y) {
+    var rect = tapWrap.getBoundingClientRect();
+    var el = document.createElement('span');
+    el.className = 'float';
+    el.textContent = '+' + text;
+    el.style.left = Math.max(16, Math.min(rect.width - 16, x - rect.left)) + 'px';
+    el.style.top = Math.max(16, Math.min(rect.height - 16, y - rect.top)) + 'px';
+    tapWrap.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+  }
+  function tap(x, y) {
+    var g = tapBase() * mult();
+    S.coins += g; S.total += g;
+    if (!reduce) spawnFloat(fmt(g), x, y);
+    render();
+  }
+  tapBtn.addEventListener('pointerdown', function (e) { tap(e.clientX, e.clientY); });
+  tapBtn.addEventListener('click', function (e) {
+    if (e.detail === 0) {
+      var r = tapBtn.getBoundingClientRect();
+      tap(r.left + r.width / 2, r.top + r.height / 3);
+    }
+  });
+
+  /* ---------- Premios por anuncio ---------- */
+  chestBtn.addEventListener('click', function () {
+    if (S.chest < CHEST_SECONDS) return;
+    var r = chestReward();
+    watch('cofre', function () {
+      S.coins += r; S.total += r; S.chest = 0;
+      toast('Cofre abierto: +₲ ' + fmt(r));
+    });
+  });
+  boostBtn.addEventListener('click', function () {
+    watch('boost', function () {
+      var now = Date.now();
+      S.boostUntil = Math.min(Math.max(now, S.boostUntil) + BOOST_MS, now + BOOST_MAX_MS);
+      toast('Ganancias x2 activadas');
+    });
+  });
+
+  /* ---------- Ganancias de cuando no estabas ---------- */
+  var pendingOffline = 0;
+  function closeOffline() { offlineModal.hidden = true; }
+  function checkOffline() {
+    if (adBusy || !offlineModal.hidden) return;
+    var away = (Date.now() - S.lastSeen) / 1000;
+    var cps = autoBase();
+    if (away < 60 || cps <= 0) return;
+    var amt = Math.floor(cps * Math.min(away, OFFLINE_CAP));
+    if (amt < 50) return;
+    pendingOffline = amt;
+    S.lastSeen = Date.now();
+    offText.textContent = 'Tus negocios trabajaron ' + awayText(away) + ' y juntaron ₲ ' + fmt(amt) + '.';
+    offTake.textContent = 'Cobrar ₲ ' + fmt(amt);
+    offDoubleText.textContent = 'Cobrar el doble (₲ ' + fmt(amt * 2) + ') viendo un anuncio';
+    offlineModal.hidden = false;
+    offTake.focus();
+  }
+  offTake.addEventListener('click', function () {
+    S.coins += pendingOffline; S.total += pendingOffline;
+    toast('Cobraste ₲ ' + fmt(pendingOffline));
+    pendingOffline = 0;
+    closeOffline(); save(); render();
+  });
+  offDouble.addEventListener('click', function () {
+    var amt = pendingOffline * 2;
+    watch('offline-x2', function () {
+      S.coins += amt; S.total += amt;
+      toast('Cobraste ₲ ' + fmt(amt));
+      pendingOffline = 0;
+      closeOffline();
+    });
+  });
+
+  /* ---------- Reiniciar (con confirmación dentro de la página) ---------- */
+  var resetBtn = $('reset'), resetTimer = 0, resetArmed = false;
+  resetBtn.addEventListener('click', function () {
+    if (!resetArmed) {
+      resetArmed = true;
+      resetBtn.textContent = 'Tocá de nuevo para borrar tu progreso';
+      resetTimer = setTimeout(function () { resetArmed = false; resetBtn.textContent = 'Reiniciar partida'; }, 3500);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetArmed = false;
+    resetBtn.textContent = 'Reiniciar partida';
+    S = fresh();
+    save(); render();
+    toast('Partida reiniciada');
+  });
+
+  /* ---------- Reloj del juego ---------- */
+  var last = performance.now();
+  setInterval(function () {
+    var now = performance.now();
+    var dt = (now - last) / 1000;
+    last = now;
+    if (document.hidden) return;
+    dt = Math.min(dt, 2);
+    var gain = autoBase() * mult() * dt;
+    S.coins += gain; S.total += gain;
+    if (S.chest < CHEST_SECONDS) S.chest = Math.min(CHEST_SECONDS, S.chest + dt);
+    render();
+  }, 100);
+  setInterval(function () { if (!document.hidden) save(); }, 5000);
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { save(); }
+    else { last = performance.now(); checkOffline(); }
+  });
+  window.addEventListener('pagehide', save);
+
+  var adNote = $('adNote');
+  if (native && adNote) adNote.textContent = 'Anuncios de prueba de Google. En la versión publicada serán anuncios reales de AdMob.';
+  buildUpgrades();
+  checkOffline();
+  render();
+  if (native) admobPreload();
+})();
+</script>
+</body>
+</html>
