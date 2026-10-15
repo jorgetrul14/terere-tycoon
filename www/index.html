@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lilita+One&display=swap">
 <style>
-/* Layout: una sola columna tipo app de celular. Primero el saldo, luego la guampa para tocar,
-   después los premios por anuncio (dorado) y las mejoras (verde yerba). */
+/* Layout: app de celular con tres pantallas (Puesto, Hora pico, Metas) y barra de pestañas abajo.
+   El saldo queda siempre arriba. Dorado = premio por ver un anuncio. Verde yerba = comprar. */
 :root {
   --bg: #EDF3EA;
   --panel: #FFFFFF;
@@ -59,7 +59,8 @@
 }
 
 * { box-sizing: border-box; }
-html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); }
 body { margin: 0; }
 body {
   background: var(--bg);
@@ -67,7 +68,7 @@ body {
   font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.45;
-  padding-block: 1rem 2.5rem;
+  padding-block: 1rem 0;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
@@ -77,18 +78,26 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
+.view { display: flex; flex-direction: column; gap: 1.4rem; }
 :focus-visible { outline: 3px solid var(--ice); outline-offset: 2px; }
 
-.top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.top-right { display: flex; align-items: center; gap: 0.5rem; }
 h1 { font: 400 1.6rem/1 var(--font-display); letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
 h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01em; text-wrap: balance; }
 .chip {
   font-size: 0.8rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px;
   background: var(--panel-2); color: var(--muted); font-variant-numeric: tabular-nums;
 }
+.icon-btn {
+  width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--panel-2); color: var(--fg); display: grid; place-items: center; touch-action: manipulation;
+}
+.icon-btn svg { width: 1.25rem; height: 1.25rem; }
 
-.balance { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+.balance { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-align: center; }
 .label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
 .coins {
   font: 400 clamp(2.6rem, 13vw, 3.7rem)/1 var(--font-display);
@@ -100,9 +109,22 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .rates b { color: var(--fg); }
 .boost { background: var(--gold); color: var(--gold-fg); font-weight: 700; font-size: 0.85rem; padding: 0.25rem 0.75rem; border-radius: 999px; font-variant-numeric: tabular-nums; }
 
+.zone { display: flex; flex-direction: column; gap: 0.35rem; }
+.zone-top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.1rem 0.75rem; }
+.zone-top strong { font: 400 1.1rem/1.1 var(--font-display); }
+.zone-top span { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+.bar.green i { background: var(--yerba); }
+.scene { border-radius: 1rem; overflow: hidden; border: 1px solid var(--line); line-height: 0; }
+.scene svg { width: 100%; height: auto; display: block; }
+.cust { animation: walk linear infinite; }
+@keyframes walk {
+  from { transform: translateX(-20px); }
+  to { transform: translateX(420px); }
+}
+
 .tap-wrap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
 .tap {
-  width: min(66vw, 15rem); aspect-ratio: 1; max-width: 100%;
+  width: min(58vw, 13.5rem); aspect-ratio: 1; max-width: 100%;
   border-radius: 50%; border: 0; padding: 0; cursor: pointer;
   background: var(--panel-2);
   box-shadow: inset 0 0 0 0.45rem var(--panel), 0 0 0 2px var(--line);
@@ -130,11 +152,15 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   padding: 0.85rem 0.9rem; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: center;
 }
 .card.ready { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+.card.done { opacity: 0.7; }
 .card h3 { margin: 0; font-size: 1rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; }
 .card h3 .lv { font-size: 0.75rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-.card p { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; }
+.card p { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
 .bar { height: 0.5rem; border-radius: 999px; background: var(--panel-2); overflow: hidden; margin-top: 0.55rem; }
 .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
+.dots { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
+.dot { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); }
+.dot.on { background: var(--gold); border-color: var(--gold); }
 
 .btn {
   min-height: 2.75rem; padding: 0.55rem 0.9rem; border-radius: 0.75rem; border: 0; cursor: pointer;
@@ -150,9 +176,46 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .btn:disabled svg { opacity: 0.45; }
 .btn-wide { width: 100%; }
 
+.rush-card { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.rush-card p { margin: 0; color: var(--muted); max-width: 65ch; }
+.hud { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.hud .stat { font: 400 1.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
+#rushPlay { display: flex; flex-direction: column; gap: 0.6rem; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.cell { position: relative; aspect-ratio: 1; border-radius: 1rem; background: var(--panel-2); overflow: hidden; }
+.guest {
+  position: absolute; inset: 0.3rem; border: 0; padding: 0; border-radius: 50%; background: transparent; cursor: pointer;
+  animation: pop 0.12s ease-out; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.guest svg { width: 100%; height: 100%; pointer-events: none; }
+.guest.vip { filter: drop-shadow(0 0 0.35rem var(--gold)); }
+@keyframes pop { from { transform: scale(0.4); } to { transform: scale(1); } }
+
 .foot { color: var(--muted); font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; }
 .foot p { margin: 0; max-width: 65ch; }
 .link { background: none; border: 0; padding: 0.4rem 0; color: var(--muted); font: 600 0.82rem var(--font-body); text-decoration: underline; cursor: pointer; }
+
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--panel); border-top: 1px solid var(--line);
+  padding-top: 0.35rem;
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.nav-inner { display: flex; gap: 0.25rem; max-width: 30rem; margin-inline: auto; }
+.tab {
+  flex: 1; min-width: 0; position: relative; border: 0; background: none; color: var(--muted);
+  font: 700 0.72rem/1.1 var(--font-body); padding: 0.4rem 0.2rem; border-radius: 0.75rem; min-height: 3.1rem;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; cursor: pointer; touch-action: manipulation;
+}
+.tab svg { width: 1.4rem; height: 1.4rem; }
+.tab[aria-current="page"] { background: var(--panel-2); color: var(--fg); }
+.badge {
+  position: absolute; top: 0.15rem; left: calc(50% + 0.6rem); min-width: 1.05rem; height: 1.05rem; padding: 0 0.25rem;
+  border-radius: 999px; background: var(--gold); color: var(--gold-fg); font-size: 0.65rem; font-weight: 700;
+  display: grid; place-items: center; font-variant-numeric: tabular-nums;
+}
 
 .overlay {
   position: fixed; inset: 0; z-index: 10; background: var(--scrim);
@@ -181,7 +244,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%); z-index: 30;
-  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   width: max-content; max-width: calc(100% - 2rem);
   background: var(--fg); color: var(--bg); font-weight: 700; font-size: 0.9rem;
   padding: 0.6rem 1rem; border-radius: 0.8rem; text-align: center;
@@ -191,6 +254,8 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   .tap { transition: none; }
   .tap:active { transform: none; }
   .float { display: none; }
+  .cust { animation: none; }
+  .guest { animation: none; }
 }
 </style>
 </head>
@@ -199,7 +264,10 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 <main class="app">
   <header class="top">
     <h1>Tereré Tycoon</h1>
-    <span class="chip" title="Cantidad de anuncios de prueba vistos">Anuncios vistos: <span id="adsCount">0</span></span>
+    <div class="top-right">
+      <span class="chip" title="Cantidad de anuncios vistos">Anuncios: <span id="adsCount">0</span></span>
+      <button class="icon-btn" id="mute" type="button" aria-pressed="false" aria-label="Sonido"></button>
+    </div>
   </header>
 
   <section class="balance">
@@ -212,57 +280,108 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     <span class="boost" id="boost" hidden>Ganancias x2 · <span id="boostLeft">2:00</span></span>
   </section>
 
-  <section class="tap-wrap" id="tapWrap">
-    <button class="tap" id="tap" type="button" aria-label="Tocar la guampa para ganar guaraníes">
-      <svg viewBox="0 0 200 200" aria-hidden="true">
-        <ellipse cx="100" cy="186" rx="58" ry="8" fill="rgba(0,0,0,0.2)"/>
-        <path d="M48 62 H152 L140 164 Q138 179 122 179 H78 Q62 179 60 164 Z" fill="#9B6A3C"/>
-        <path d="M60 96 H140 L137 160 Q136 170 126 170 H74 Q64 170 63 160 Z" fill="#B07C4A" opacity="0.55"/>
-        <path d="M48 62 H152 L149 90 H51 Z" fill="#C9CED2"/>
-        <path d="M48 62 H152 L151 70 H49 Z" fill="#E6E9EB"/>
-        <ellipse cx="100" cy="62" rx="52" ry="12" fill="#3F8F4A"/>
-        <ellipse cx="100" cy="62" rx="44" ry="8" fill="#2F7A3B"/>
-        <rect x="64" y="38" width="28" height="28" rx="6" fill="#BFEAF7" transform="rotate(-12 78 52)"/>
-        <rect x="96" y="30" width="26" height="26" rx="6" fill="#D6F2FB" transform="rotate(10 109 43)"/>
-        <rect x="118" y="44" width="22" height="22" rx="5" fill="#A9DDEF" transform="rotate(-6 129 55)"/>
-        <path d="M134 14 L108 100" stroke="#6F777D" stroke-width="7" stroke-linecap="round"/>
-        <path d="M134 14 L108 100" stroke="#E4E8EA" stroke-width="4" stroke-linecap="round"/>
-        <ellipse cx="136" cy="13" rx="10" ry="4.5" fill="#E4E8EA" stroke="#6F777D" stroke-width="1.5" transform="rotate(20 136 13)"/>
-      </svg>
-    </button>
-    <p class="hint">Tocá la guampa para ganar guaraníes</p>
+  <section class="view" id="view-puesto">
+    <div class="zone">
+      <div class="zone-top"><strong id="zoneName">Puesto del barrio</strong><span id="zoneNext"></span></div>
+      <div class="bar green"><i id="zoneFill"></i></div>
+    </div>
+    <div class="scene" id="scene"></div>
+
+    <div class="tap-wrap" id="tapWrap">
+      <button class="tap" id="tap" type="button" aria-label="Tocar la guampa para ganar guaraníes">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <ellipse cx="100" cy="186" rx="58" ry="8" fill="rgba(0,0,0,0.2)"/>
+          <path d="M48 62 H152 L140 164 Q138 179 122 179 H78 Q62 179 60 164 Z" fill="#9B6A3C"/>
+          <path d="M60 96 H140 L137 160 Q136 170 126 170 H74 Q64 170 63 160 Z" fill="#B07C4A" opacity="0.55"/>
+          <path d="M48 62 H152 L149 90 H51 Z" fill="#C9CED2"/>
+          <path d="M48 62 H152 L151 70 H49 Z" fill="#E6E9EB"/>
+          <ellipse cx="100" cy="62" rx="52" ry="12" fill="#3F8F4A"/>
+          <ellipse cx="100" cy="62" rx="44" ry="8" fill="#2F7A3B"/>
+          <rect x="64" y="38" width="28" height="28" rx="6" fill="#BFEAF7" transform="rotate(-12 78 52)"/>
+          <rect x="96" y="30" width="26" height="26" rx="6" fill="#D6F2FB" transform="rotate(10 109 43)"/>
+          <rect x="118" y="44" width="22" height="22" rx="5" fill="#A9DDEF" transform="rotate(-6 129 55)"/>
+          <path d="M134 14 L108 100" stroke="#6F777D" stroke-width="7" stroke-linecap="round"/>
+          <path d="M134 14 L108 100" stroke="#E4E8EA" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="136" cy="13" rx="10" ry="4.5" fill="#E4E8EA" stroke="#6F777D" stroke-width="1.5" transform="rotate(20 136 13)"/>
+        </svg>
+      </button>
+      <p class="hint">Tocá la guampa para ganar guaraníes</p>
+    </div>
+
+    <section class="block" aria-labelledby="h-ads">
+      <h2 id="h-ads">Premios por ver anuncios</h2>
+      <div class="list">
+        <div class="card" id="chestCard">
+          <div>
+            <h3>Cofre sorpresa</h3>
+            <p id="chestText">Se abre en 0:45</p>
+            <div class="bar"><i id="chestFill"></i></div>
+          </div>
+          <button class="btn btn-ad" id="chestBtn" type="button" disabled>
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+            <span id="chestBtnText">Esperá</span>
+          </button>
+        </div>
+        <div class="card">
+          <div>
+            <h3>Ganancias x2</h3>
+            <p>Duplican tus toques y tu ingreso por 2 minutos.</p>
+          </div>
+          <button class="btn btn-ad" id="boostBtn" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+            <span>Ver anuncio</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-up">
+      <h2 id="h-up">Mejoras</h2>
+      <div class="list" id="upgrades"></div>
+    </section>
   </section>
 
-  <section class="block" aria-labelledby="h-ads">
-    <h2 id="h-ads">Premios por ver anuncios</h2>
-    <div class="list">
-      <div class="card" id="chestCard">
-        <div>
-          <h3>Cofre sorpresa</h3>
-          <p id="chestText">Se abre en 0:45</p>
-          <div class="bar"><i id="chestFill"></i></div>
-        </div>
-        <button class="btn btn-ad" id="chestBtn" type="button" disabled>
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
-          <span id="chestBtnText">Esperá</span>
-        </button>
+  <section class="view" id="view-rush" hidden>
+    <div class="rush-card" id="rushIntro">
+      <h2>Hora pico</h2>
+      <p>Llegan clientes con sed. Tocalos antes de que se vayan: cada uno suma puntos y los combos suman más. Los clientes dorados valen más. Dura 20 segundos.</p>
+      <p id="rushInfo"></p>
+      <button class="btn btn-buy btn-wide" id="rushStart" type="button"><span id="rushStartText">Empezar</span></button>
+      <button class="btn btn-ad btn-wide" id="rushSkip" type="button" hidden>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+        <span>Jugar ya viendo un anuncio</span>
+      </button>
+    </div>
+    <div id="rushPlay" hidden>
+      <div class="hud">
+        <span class="stat" id="rushScore">0 pts</span>
+        <span class="stat" id="rushCombo">Combo x0</span>
+        <span class="stat" id="rushTime">20 s</span>
       </div>
-      <div class="card">
-        <div>
-          <h3>Ganancias x2</h3>
-          <p>Duplican tus toques y tu ingreso por 2 minutos.</p>
-        </div>
-        <button class="btn btn-ad" id="boostBtn" type="button">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
-          <span>Ver anuncio</span>
-        </button>
-      </div>
+      <div class="bar"><i id="rushBar" style="width:100%"></i></div>
+      <div class="grid3" id="rushGrid"></div>
     </div>
   </section>
 
-  <section class="block" aria-labelledby="h-up">
-    <h2 id="h-up">Mejoras</h2>
-    <div class="list" id="upgrades"></div>
+  <section class="view" id="view-metas" hidden>
+    <section class="block" aria-labelledby="h-streak">
+      <h2 id="h-streak">Racha diaria</h2>
+      <div class="card">
+        <div>
+          <h3 id="streakTitle">Racha de 1 día</h3>
+          <p>Entrá todos los días: el premio crece hasta el día 7.</p>
+          <div class="dots" id="streakDots"></div>
+        </div>
+      </div>
+    </section>
+    <section class="block" aria-labelledby="h-missions">
+      <h2 id="h-missions">Misiones de hoy</h2>
+      <div class="list" id="missionList"></div>
+    </section>
+    <section class="block" aria-labelledby="h-ach">
+      <h2 id="h-ach">Logros</h2>
+      <div class="list" id="achList"></div>
+    </section>
   </section>
 
   <footer class="foot">
@@ -271,15 +390,32 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   </footer>
 </main>
 
-<div class="overlay" id="offlineModal" role="dialog" aria-modal="true" aria-labelledby="offTitle" hidden>
+<nav class="nav" aria-label="Pantallas del juego">
+  <div class="nav-inner">
+    <button class="tab" type="button" data-view="puesto" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l1.5-5h15L21 10"/><path d="M3 10c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3"/><path d="M5 13v7h14v-7"/></svg>
+      <span>Puesto</span><span class="badge" id="badgePuesto" hidden></span>
+    </button>
+    <button class="tab" type="button" data-view="rush" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
+      <span>Hora pico</span><span class="badge" id="badgeRush" hidden></span>
+    </button>
+    <button class="tab" type="button" data-view="metas" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M12 14v4"/><path d="M8 21h8"/></svg>
+      <span>Metas</span><span class="badge" id="badgeMetas" hidden></span>
+    </button>
+  </div>
+</nav>
+
+<div class="overlay" id="rewardModal" role="dialog" aria-modal="true" aria-labelledby="rwTitle" hidden>
   <div class="dialog">
-    <h2 id="offTitle">Mientras no estabas</h2>
-    <p id="offText"></p>
+    <h2 id="rwTitle"></h2>
+    <p id="rwText"></p>
     <div class="stack">
-      <button class="btn btn-buy btn-wide" id="offTake" type="button"></button>
-      <button class="btn btn-ad btn-wide" id="offDouble" type="button">
+      <button class="btn btn-buy btn-wide" id="rwTake" type="button"></button>
+      <button class="btn btn-ad btn-wide" id="rwDouble" type="button">
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
-        <span id="offDoubleText"></span>
+        <span id="rwDoubleText"></span>
       </button>
     </div>
   </div>
@@ -310,6 +446,8 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var BOOST_MAX_MS = 600000;
   var OFFLINE_CAP = 3 * 3600;
   var AD_SECONDS = 5;
+  var RUSH_MS = 20000;
+  var RUSH_COOLDOWN_MS = 90000;
 
   var UPGRADES = [
     { id: 'hielo', name: 'Más hielo', desc: '+1 ₲ por toque', kind: 'tap', amount: 1, base: 25, growth: 1.28 },
@@ -319,30 +457,89 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     { id: 'puesto', name: 'Puesto en la costanera', desc: '+55 ₲ por segundo', kind: 'auto', amount: 55, base: 6500, growth: 1.28 }
   ];
 
+  var STAGES = [
+    { name: 'Puesto del barrio', at: 0, sky: ['#BFE3F5', '#F3EBC9'], bld: '#9DB7A5', n: 0 },
+    { name: 'Esquina concurrida', at: 5000, sky: ['#A8D8F0', '#FBE6B8'], bld: '#8FA9B8', n: 3 },
+    { name: 'Costanera', at: 60000, sky: ['#F7B97A', '#FCE3A8'], bld: '#B07A62', n: 5 },
+    { name: 'Centro de Asunción', at: 800000, sky: ['#6C7FC4', '#F4B08F'], bld: '#4D5A8F', n: 7 },
+    { name: 'Cadena nacional', at: 10000000, sky: ['#141C3A', '#3B4B8C'], bld: '#0C1226', n: 9, night: true }
+  ];
+  var CUST_COLORS = ['#D9503F', '#3F7FD9', '#8E5BC9', '#E0A526', '#2E9C6A', '#D96C9E'];
+
+  var ACHIEVEMENTS = [
+    { id: 'taps1', name: 'Calentando la mano', desc: 'Tocá la guampa 100 veces', metric: 'taps', target: 100, reward: 250 },
+    { id: 'taps2', name: 'Dedos de acero', desc: 'Tocá la guampa 2.500 veces', metric: 'taps', target: 2500, reward: 5000 },
+    { id: 'earn1', name: 'Primer capital', desc: 'Juntá ₲ 1.000 en total', metric: 'total', target: 1000, reward: 300 },
+    { id: 'earn2', name: 'Negocio en marcha', desc: 'Juntá ₲ 100.000 en total', metric: 'total', target: 100000, reward: 10000 },
+    { id: 'earn3', name: 'Magnate del tereré', desc: 'Juntá ₲ 10.000.000 en total', metric: 'total', target: 10000000, reward: 1000000 },
+    { id: 'buy1', name: 'Inversor', desc: 'Comprá 10 mejoras', metric: 'bought', target: 10, reward: 1500 },
+    { id: 'buy2', name: 'Empresario', desc: 'Comprá 40 mejoras', metric: 'bought', target: 40, reward: 25000 },
+    { id: 'rush1', name: 'Primera hora pico', desc: 'Jugá 1 hora pico', metric: 'rushes', target: 1, reward: 500 },
+    { id: 'rush2', name: 'Rey de la hora pico', desc: 'Jugá 15 horas pico', metric: 'rushes', target: 15, reward: 20000 },
+    { id: 'combo1', name: 'Combo x15', desc: 'Llegá a un combo de 15 en la hora pico', metric: 'combo', target: 15, reward: 3000 },
+    { id: 'streak1', name: 'Constante', desc: 'Entrá 5 días seguidos', metric: 'streak', target: 5, reward: 5000 },
+    { id: 'ads1', name: 'Buen vecino', desc: 'Mirá 10 anuncios', metric: 'ads', target: 10, reward: 4000 }
+  ];
+
   var reduce = false;
   try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
 
   /* ---------- Estado y guardado ---------- */
   function fresh() {
-    return { coins: 0, total: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now() };
+    return {
+      coins: 0, total: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now(),
+      stats: { taps: 0, bought: 0, rushes: 0, bestCombo: 0, bestScore: 0 },
+      ach: {}, stage: 0, day: '', streak: 0, streakMax: 0, dailyPending: false,
+      missions: { day: '', startTotal: 0, list: [] },
+      rushReadyAt: 0, rushPending: 0, sound: true
+    };
   }
   function load() {
     var s = fresh();
     try {
       var raw = localStorage.getItem(KEY);
       if (raw) {
-        var o = JSON.parse(raw);
-        ['coins', 'total', 'boostUntil', 'chest', 'ads', 'lastSeen'].forEach(function (k) {
-          if (typeof o[k] === 'number' && isFinite(o[k])) s[k] = o[k];
-        });
+        var o = JSON.parse(raw) || {};
+        ['coins', 'total', 'boostUntil', 'chest', 'ads', 'lastSeen', 'stage', 'streak', 'streakMax', 'rushReadyAt', 'rushPending']
+          .forEach(function (k) { s[k] = num(o[k], s[k]); });
+        if (typeof o.day === 'string') s.day = o.day;
+        if (typeof o.dailyPending === 'boolean') s.dailyPending = o.dailyPending;
+        if (typeof o.sound === 'boolean') s.sound = o.sound;
         if (o.lv && typeof o.lv === 'object') {
           UPGRADES.forEach(function (u) {
             var n = o.lv[u.id];
             if (typeof n === 'number' && isFinite(n) && n >= 0) s.lv[u.id] = Math.floor(n);
           });
         }
+        if (o.stats && typeof o.stats === 'object') {
+          Object.keys(s.stats).forEach(function (k) { s.stats[k] = num(o.stats[k], 0); });
+        }
+        if (o.ach && typeof o.ach === 'object') {
+          ACHIEVEMENTS.forEach(function (a) {
+            var v = o.ach[a.id];
+            if (v === 'ready' || v === 'claimed') s.ach[a.id] = v;
+          });
+        }
+        if (o.missions && typeof o.missions === 'object' && Array.isArray(o.missions.list)) {
+          s.missions.day = typeof o.missions.day === 'string' ? o.missions.day : '';
+          s.missions.startTotal = num(o.missions.startTotal, 0);
+          s.missions.list = o.missions.list
+            .filter(function (m) { return m && typeof m.k === 'string' && typeof m.target === 'number'; })
+            .slice(0, 3)
+            .map(function (m) {
+              return { k: m.k, target: m.target, reward: num(m.reward, 300), progress: num(m.progress, 0), claimed: !!m.claimed };
+            });
+        }
+        if (s.stage < 0 || s.stage >= STAGES.length) s.stage = 0;
       }
     } catch (e) {}
     return s;
@@ -365,9 +562,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     UPGRADES.forEach(function (u) { if (u.kind === 'auto') n += level(u) * u.amount; });
     return n;
   }
+  function autoLevels() {
+    var n = 0;
+    UPGRADES.forEach(function (u) { if (u.kind === 'auto') n += level(u); });
+    return n;
+  }
   function mult() { return Date.now() < S.boostUntil ? 2 : 1; }
   function cost(u) { return Math.floor(u.base * Math.pow(u.growth, level(u))); }
   function chestReward() { return Math.max(150, Math.round(autoBase() * 60 + tapBase() * 25)); }
+  function rushUnit() { return Math.max(25, Math.round(tapBase() * 4 + autoBase() * 6)); }
+  function dailyAmount() {
+    return Math.max(300, Math.round(autoBase() * 90 + tapBase() * 40)) * Math.min(Math.max(S.streak, 1), 7);
+  }
+  function grant(amount) { S.coins += amount; S.total += amount; }
 
   function fmt(n) {
     n = Math.floor(n);
@@ -382,17 +589,103 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   function awayText(sec) {
     return sec < 3600 ? Math.max(1, Math.round(sec / 60)) + ' min' : (sec / 3600).toFixed(1).replace('.', ',') + ' h';
   }
+  function nice(n) {
+    var p = Math.pow(10, Math.max(0, Math.floor(Math.log(n) / Math.LN10) - 1));
+    return Math.round(n / p) * p;
+  }
+
+  /* ---------- Días, racha y misiones ---------- */
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function today() { return dayKey(new Date()); }
+  function yesterday() { var d = new Date(); d.setDate(d.getDate() - 1); return dayKey(d); }
+
+  function newMissions() {
+    var seed = parseInt(String(S.day).replace(/-/g, ''), 10) || 1;
+    function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    var pool = ['taps', 'earn', 'buy', 'rush', 'ads'];
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1));
+      var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    var reward = Math.max(300, Math.round(autoBase() * 75 + tapBase() * 35));
+    var tapsTargets = [150, 250, 400];
+    var list = pool.slice(0, 3).map(function (k) {
+      var target = 3;
+      if (k === 'taps') target = tapsTargets[Math.floor(rnd() * 3)];
+      else if (k === 'earn') target = nice(Math.max(1500, autoBase() * 420 + tapBase() * 180));
+      else if (k === 'buy') target = 3;
+      else if (k === 'rush') target = 2;
+      else if (k === 'ads') target = 2;
+      return { k: k, target: target, reward: reward, progress: 0, claimed: false };
+    });
+    S.missions = { day: S.day, startTotal: S.total, list: list };
+  }
+  function missionText(m) {
+    switch (m.k) {
+      case 'taps': return 'Tocá la guampa ' + fmt(m.target) + ' veces';
+      case 'earn': return 'Ganá ₲ ' + fmt(m.target);
+      case 'buy': return 'Comprá ' + m.target + ' mejoras';
+      case 'rush': return 'Jugá ' + m.target + ' horas pico';
+      default: return 'Mirá ' + m.target + ' anuncios';
+    }
+  }
+  function missionProgress(m) {
+    if (m.k === 'earn') return Math.min(m.target, Math.max(0, S.total - S.missions.startTotal));
+    return Math.min(m.target, m.progress);
+  }
+  function bump(kind, n) {
+    S.missions.list.forEach(function (m) {
+      if (m.k === kind && !m.claimed) m.progress = Math.min(m.target, m.progress + n);
+    });
+  }
+  // Devuelve true si empezó un día nuevo.
+  function checkDay() {
+    var t = today();
+    if (S.day === t) {
+      if (S.missions.day !== t || S.missions.list.length === 0) newMissions();
+      return false;
+    }
+    S.streak = (S.day === yesterday()) ? S.streak + 1 : 1;
+    S.streakMax = Math.max(S.streakMax, S.streak);
+    S.day = t;
+    S.dailyPending = true;
+    newMissions();
+    save();
+    return true;
+  }
+
+  function metric(m) {
+    switch (m) {
+      case 'taps': return S.stats.taps;
+      case 'total': return S.total;
+      case 'bought': return S.stats.bought;
+      case 'rushes': return S.stats.rushes;
+      case 'combo': return S.stats.bestCombo;
+      case 'ads': return S.ads;
+      case 'streak': return S.streakMax;
+    }
+    return 0;
+  }
+  function claimableCount() {
+    var n = 0;
+    S.missions.list.forEach(function (m) { if (!m.claimed && missionProgress(m) >= m.target) n++; });
+    ACHIEVEMENTS.forEach(function (a) { if (S.ach[a.id] === 'ready') n++; });
+    return n;
+  }
 
   /* ---------- Elementos ---------- */
   var coinsEl = $('coins'), perTapEl = $('perTap'), perSecEl = $('perSec'), adsCountEl = $('adsCount');
   var boostEl = $('boost'), boostLeftEl = $('boostLeft');
   var chestCard = $('chestCard'), chestText = $('chestText'), chestFill = $('chestFill');
   var chestBtn = $('chestBtn'), chestBtnText = $('chestBtnText'), boostBtn = $('boostBtn');
-  var tapBtn = $('tap'), tapWrap = $('tapWrap'), toastEl = $('toast');
-  var offlineModal = $('offlineModal'), offText = $('offText'), offTake = $('offTake');
-  var offDouble = $('offDouble'), offDoubleText = $('offDoubleText');
+  var tapBtn = $('tap'), tapWrap = $('tapWrap'), toastEl = $('toast'), sceneEl = $('scene');
+  var zoneName = $('zoneName'), zoneNext = $('zoneNext'), zoneFill = $('zoneFill');
+  var rewardModal = $('rewardModal'), rwTitle = $('rwTitle'), rwText = $('rwText');
+  var rwTake = $('rwTake'), rwDouble = $('rwDouble'), rwDoubleText = $('rwDoubleText');
   var adModal = $('adModal'), adFill = $('adFill'), adCount = $('adCount');
   var adClaim = $('adClaim'), adClose = $('adClose');
+  var muteBtn = $('mute');
 
   var toastTimer = 0;
   function toast(msg) {
@@ -401,6 +694,46 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toastEl.hidden = true; }, 3200);
   }
+
+  /* ---------- Sonidos ---------- */
+  var Snd = {
+    ctx: null,
+    init: function () {
+      if (!this.ctx) {
+        try { var C = window.AudioContext || window.webkitAudioContext; if (C) this.ctx = new C(); } catch (e) {}
+      }
+      if (this.ctx && this.ctx.state === 'suspended') { try { this.ctx.resume(); } catch (e) {} }
+    },
+    tone: function (f, d, type, vol, when) {
+      if (!S.sound || !this.ctx) return;
+      try {
+        var t = this.ctx.currentTime + (when || 0);
+        var o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(f, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol || 0.05, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(t); o.stop(t + d + 0.02);
+      } catch (e) {}
+    },
+    tap: function () { this.tone(520, 0.05, 'triangle', 0.03); },
+    buy: function () { this.tone(523, 0.09, 'sine', 0.05); this.tone(659, 0.09, 'sine', 0.05, 0.08); this.tone(784, 0.14, 'sine', 0.05, 0.16); },
+    pop: function (c) { this.tone(600 + Math.min(c, 20) * 25, 0.07, 'square', 0.025); },
+    miss: function () { this.tone(180, 0.15, 'sawtooth', 0.03); },
+    win: function () { var self = this; [523, 659, 784, 1047].forEach(function (f, i) { self.tone(f, 0.16, 'triangle', 0.05, i * 0.09); }); }
+  };
+  document.addEventListener('pointerdown', function () { Snd.init(); });
+
+  var ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  var ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M22 9l-6 6"/><path d="M16 9l6 6"/></svg>';
+  function renderMute() {
+    muteBtn.innerHTML = S.sound ? ICON_ON : ICON_OFF;
+    muteBtn.setAttribute('aria-pressed', S.sound ? 'false' : 'true');
+    muteBtn.setAttribute('aria-label', S.sound ? 'Silenciar sonidos' : 'Activar sonidos');
+  }
+  muteBtn.addEventListener('click', function () { S.sound = !S.sound; renderMute(); save(); if (S.sound) Snd.tap(); });
 
   /* ---------- Capa de anuncios ----------
      Todo el juego pide anuncios con Ads.showRewarded(), que devuelve:
@@ -519,12 +852,150 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (native && !adLoaded) toast('Cargando anuncio…');
     return Ads.showRewarded(placement).then(function (result) {
       adBusy = false;
-      if (result === 'rewarded') { S.ads += 1; onReward(); save(); }
+      if (result === 'rewarded') { S.ads += 1; bump('ads', 1); onReward(); save(); }
       else if (result === 'closed') { toast('Cerraste el anuncio antes de tiempo, así que no hay premio.'); }
       else { toast('No hay un anuncio disponible ahora. Probá de nuevo en un rato.'); }
       render();
+      showNextReward();
       return result === 'rewarded';
     });
+  }
+
+  /* ---------- Premios con ventana (cobrar o duplicar viendo un anuncio) ---------- */
+  var rewardQueue = [], rewardCurrent = null;
+  function pushReward(cfg) {
+    if (rewardCurrent && rewardCurrent.key === cfg.key) return;
+    for (var i = 0; i < rewardQueue.length; i++) { if (rewardQueue[i].key === cfg.key) return; }
+    rewardQueue.push(cfg);
+    showNextReward();
+  }
+  function showNextReward() {
+    if (rewardCurrent || adBusy) return;
+    var c = rewardQueue.shift();
+    if (!c) return;
+    rewardCurrent = c;
+    rwTitle.textContent = c.title;
+    rwText.textContent = c.text;
+    rwTake.textContent = 'Cobrar ₲ ' + fmt(c.amount);
+    rwDoubleText.textContent = 'Cobrar el doble (₲ ' + fmt(c.amount * 2) + ') viendo un anuncio';
+    rewardModal.hidden = false;
+    rwTake.focus();
+  }
+  function finishReward() {
+    var c = rewardCurrent;
+    rewardCurrent = null;
+    rewardModal.hidden = true;
+    if (c && c.onDone) c.onDone();
+    save();
+    render();
+    renderMetas();
+    showNextReward();
+  }
+  rwTake.addEventListener('click', function () {
+    if (!rewardCurrent) return;
+    grant(rewardCurrent.amount);
+    Snd.win();
+    toast('Cobraste ₲ ' + fmt(rewardCurrent.amount));
+    finishReward();
+  });
+  rwDouble.addEventListener('click', function () {
+    var c = rewardCurrent;
+    if (!c) return;
+    watch('premio-x2', function () {
+      grant(c.amount * 2);
+      Snd.win();
+      toast('Cobraste ₲ ' + fmt(c.amount * 2));
+      finishReward();
+    });
+  });
+
+  function queueDaily() {
+    if (!S.dailyPending) return;
+    pushReward({
+      key: 'daily',
+      title: 'Premio del día',
+      text: 'Racha de ' + S.streak + (S.streak === 1 ? ' día' : ' días') + '. Cuantos más días seguidos, más grande el premio (hasta el día 7).',
+      amount: dailyAmount(),
+      onDone: function () { S.dailyPending = false; }
+    });
+  }
+  function queueRushPending() {
+    if (S.rushPending <= 0) return;
+    pushReward({
+      key: 'rush',
+      title: 'Hora pico terminada',
+      text: 'Este es el premio por tus clientes atendidos.',
+      amount: S.rushPending,
+      onDone: function () { S.rushPending = 0; }
+    });
+  }
+  function checkOffline() {
+    var away = (Date.now() - S.lastSeen) / 1000;
+    var cps = autoBase();
+    if (away < 60 || cps <= 0) return;
+    var amt = Math.floor(cps * Math.min(away, OFFLINE_CAP));
+    if (amt < 50) return;
+    S.lastSeen = Date.now();
+    pushReward({
+      key: 'offline',
+      title: 'Mientras no estabas',
+      text: 'Tus negocios trabajaron ' + awayText(away) + ' y juntaron ₲ ' + fmt(amt) + '.',
+      amount: amt
+    });
+  }
+
+  /* ---------- Escena del puesto ---------- */
+  var sceneKey = '';
+  function sceneSVG(stage, custCount) {
+    var st = STAGES[stage];
+    var s = '<svg viewBox="0 0 400 130" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+    s += '<defs><linearGradient id="sky' + stage + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + st.sky[0] + '"/><stop offset="1" stop-color="' + st.sky[1] + '"/></linearGradient></defs>';
+    s += '<rect width="400" height="130" fill="url(#sky' + stage + ')"/>';
+    if (st.night) {
+      s += '<circle cx="342" cy="26" r="11" fill="#F2F0D8"/>';
+      for (var k = 0; k < 14; k++) { s += '<circle cx="' + ((k * 83 + 20) % 390) + '" cy="' + (8 + (k * 29) % 44) + '" r="1.2" fill="#FFFFFF" opacity="0.8"/>'; }
+    } else {
+      s += '<circle cx="342" cy="28" r="14" fill="#FFF3B8" opacity="0.9"/>';
+    }
+    for (var i = 0; i < st.n; i++) {
+      var w = 26 + ((i * 37) % 22), h = 34 + ((i * 53) % 46), x = (i * 46 + 8) % 372;
+      s += '<rect x="' + x + '" y="' + (92 - h) + '" width="' + w + '" height="' + h + '" fill="' + st.bld + '"/>';
+      if (st.night) {
+        for (var r = 0; r < 3; r++) { s += '<rect x="' + (x + 5) + '" y="' + (92 - h + 6 + r * 12) + '" width="5" height="6" fill="#F6D86B" opacity="0.85"/><rect x="' + (x + w - 11) + '" y="' + (92 - h + 6 + r * 12) + '" width="5" height="6" fill="#F6D86B" opacity="0.6"/>'; }
+      }
+    }
+    s += '<rect y="92" width="400" height="38" fill="#7A7468"/><rect y="92" width="400" height="6" fill="#A39C8C"/>';
+    s += '<rect x="160" y="62" width="80" height="30" fill="#B07C4A"/>';
+    s += '<path d="M152 62 L248 62 L242 46 L158 46 Z" fill="#D9503F"/>';
+    s += '<path d="M168 62 L168 46 L184 46 L180 62 Z M200 62 L200 46 L216 46 L212 62 Z M232 62 L232 46 L240 46 L240 62 Z" fill="#F4F1E8"/>';
+    s += '<rect x="170" y="68" width="60" height="14" rx="2" fill="#6B4727"/>';
+    s += '<text x="200" y="79" text-anchor="middle" font-size="10" fill="#F4E3C4" style="font-family:var(--font-display)">TERERÉ</text>';
+    for (var c = 0; c < custCount; c++) {
+      var col = CUST_COLORS[c % CUST_COLORS.length];
+      var dur = 11 + ((c * 5) % 9);
+      var delay = -(c * 3.1);
+      var startX = (c * 47) % 400;
+      s += '<g class="cust" style="transform:translateX(' + startX + 'px);animation-duration:' + dur + 's;animation-delay:' + delay + 's">' +
+        '<circle cx="0" cy="77" r="5" fill="#E9C29B"/><rect x="-5" y="82" width="10" height="13" rx="4" fill="' + col + '"/></g>';
+    }
+    return s + '</svg>';
+  }
+  function renderScene() {
+    var n = Math.min(9, 1 + autoLevels());
+    var key = S.stage + ':' + n;
+    if (key === sceneKey) return;
+    sceneKey = key;
+    sceneEl.innerHTML = sceneSVG(S.stage, n);
+  }
+  function checkStage() {
+    var idx = 0;
+    for (var i = 0; i < STAGES.length; i++) { if (S.total >= STAGES[i].at) idx = i; }
+    if (idx > S.stage) {
+      S.stage = idx;
+      toast('Nueva zona: ' + STAGES[idx].name);
+      Snd.win();
+      save();
+    }
   }
 
   /* ---------- Mejoras ---------- */
@@ -532,22 +1003,22 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   function buildUpgrades() {
     var host = $('upgrades');
     UPGRADES.forEach(function (u) {
-      var card = document.createElement('div');
-      card.className = 'card';
-      var info = document.createElement('div');
-      var h3 = document.createElement('h3');
-      var nm = document.createElement('span'); nm.textContent = u.name;
-      var lv = document.createElement('span'); lv.className = 'lv';
-      h3.appendChild(nm); h3.appendChild(lv);
-      var p = document.createElement('p'); p.textContent = u.desc;
-      info.appendChild(h3); info.appendChild(p);
-      var btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'btn btn-buy';
-      var sm = document.createElement('small'); sm.textContent = 'Comprar';
-      var cs = document.createElement('span');
-      btn.appendChild(sm); btn.appendChild(cs);
+      var card = el('div', 'card');
+      var info = el('div');
+      var h3 = el('h3');
+      h3.appendChild(el('span', null, u.name));
+      var lv = el('span', 'lv');
+      h3.appendChild(lv);
+      info.appendChild(h3);
+      info.appendChild(el('p', null, u.desc));
+      var btn = el('button', 'btn btn-buy');
+      btn.type = 'button';
+      btn.appendChild(el('small', null, 'Comprar'));
+      var cs = el('span');
+      btn.appendChild(cs);
       btn.addEventListener('click', function () { buy(u); });
-      card.appendChild(info); card.appendChild(btn);
+      card.appendChild(info);
+      card.appendChild(btn);
       host.appendChild(card);
       upRefs[u.id] = { lv: lv, cost: cs, btn: btn };
     });
@@ -557,11 +1028,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (S.coins < c) return;
     S.coins -= c;
     S.lv[u.id] = level(u) + 1;
+    S.stats.bought += 1;
+    bump('buy', 1);
+    Snd.buy();
     save();
     render();
   }
 
-  /* ---------- Pantalla ---------- */
+  /* ---------- Pantalla principal ---------- */
+  var badgePuesto = $('badgePuesto'), badgeRush = $('badgeRush'), badgeMetas = $('badgeMetas');
+  function setBadge(node, n) {
+    if (n > 0) { node.hidden = false; node.textContent = n > 9 ? '9+' : String(n); }
+    else { node.hidden = true; }
+  }
   function render() {
     coinsEl.textContent = fmt(S.coins);
     perTapEl.textContent = '₲ ' + fmt(tapBase() * mult());
@@ -586,23 +1065,44 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       r.cost.textContent = '₲ ' + fmt(c);
       r.btn.disabled = S.coins < c;
     });
+
+    var st = STAGES[S.stage], nx = STAGES[S.stage + 1];
+    zoneName.textContent = st.name;
+    if (nx) {
+      zoneNext.textContent = 'Próxima zona: ' + nx.name + ' (₲ ' + fmt(S.total) + ' / ' + fmt(nx.at) + ')';
+      zoneFill.style.width = Math.min(100, Math.max(0, (S.total - st.at) / (nx.at - st.at) * 100)) + '%';
+    } else {
+      zoneNext.textContent = 'Llegaste a la última zona';
+      zoneFill.style.width = '100%';
+    }
+    renderScene();
+    renderRushState();
+
+    setBadge(badgePuesto, ready ? 1 : 0);
+    setBadge(badgeRush, (!R.on && Date.now() >= S.rushReadyAt && S.rushPending <= 0) ? 1 : 0);
+    setBadge(badgeMetas, claimableCount());
   }
 
   /* ---------- Toques ---------- */
-  function spawnFloat(text, x, y) {
-    var rect = tapWrap.getBoundingClientRect();
-    var el = document.createElement('span');
-    el.className = 'float';
-    el.textContent = '+' + text;
-    el.style.left = Math.max(16, Math.min(rect.width - 16, x - rect.left)) + 'px';
-    el.style.top = Math.max(16, Math.min(rect.height - 16, y - rect.top)) + 'px';
-    tapWrap.appendChild(el);
-    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+  function spawnFloat(host, text, x, y) {
+    var el2 = document.createElement('span');
+    el2.className = 'float';
+    el2.textContent = '+' + text;
+    el2.style.left = x + 'px';
+    el2.style.top = y + 'px';
+    host.appendChild(el2);
+    setTimeout(function () { if (el2.parentNode) el2.parentNode.removeChild(el2); }, 900);
   }
   function tap(x, y) {
     var g = tapBase() * mult();
-    S.coins += g; S.total += g;
-    if (!reduce) spawnFloat(fmt(g), x, y);
+    grant(g);
+    S.stats.taps += 1;
+    bump('taps', 1);
+    Snd.tap();
+    if (!reduce) {
+      var rect = tapWrap.getBoundingClientRect();
+      spawnFloat(tapWrap, fmt(g), Math.max(16, Math.min(rect.width - 16, x - rect.left)), Math.max(16, Math.min(rect.height - 16, y - rect.top)));
+    }
     render();
   }
   tapBtn.addEventListener('pointerdown', function (e) { tap(e.clientX, e.clientY); });
@@ -618,7 +1118,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (S.chest < CHEST_SECONDS) return;
     var r = chestReward();
     watch('cofre', function () {
-      S.coins += r; S.total += r; S.chest = 0;
+      grant(r);
+      S.chest = 0;
+      Snd.win();
       toast('Cofre abierto: +₲ ' + fmt(r));
     });
   });
@@ -626,43 +1128,240 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     watch('boost', function () {
       var now = Date.now();
       S.boostUntil = Math.min(Math.max(now, S.boostUntil) + BOOST_MS, now + BOOST_MAX_MS);
+      Snd.win();
       toast('Ganancias x2 activadas');
     });
   });
 
-  /* ---------- Ganancias de cuando no estabas ---------- */
-  var pendingOffline = 0;
-  function closeOffline() { offlineModal.hidden = true; }
-  function checkOffline() {
-    if (adBusy || !offlineModal.hidden) return;
-    var away = (Date.now() - S.lastSeen) / 1000;
-    var cps = autoBase();
-    if (away < 60 || cps <= 0) return;
-    var amt = Math.floor(cps * Math.min(away, OFFLINE_CAP));
-    if (amt < 50) return;
-    pendingOffline = amt;
-    S.lastSeen = Date.now();
-    offText.textContent = 'Tus negocios trabajaron ' + awayText(away) + ' y juntaron ₲ ' + fmt(amt) + '.';
-    offTake.textContent = 'Cobrar ₲ ' + fmt(amt);
-    offDoubleText.textContent = 'Cobrar el doble (₲ ' + fmt(amt * 2) + ') viendo un anuncio';
-    offlineModal.hidden = false;
-    offTake.focus();
+  /* ---------- Hora pico (minijuego) ---------- */
+  var rushIntro = $('rushIntro'), rushPlay = $('rushPlay'), rushInfo = $('rushInfo');
+  var rushStart = $('rushStart'), rushStartText = $('rushStartText'), rushSkip = $('rushSkip');
+  var rushScoreEl = $('rushScore'), rushComboEl = $('rushCombo'), rushTimeEl = $('rushTime'), rushBar = $('rushBar');
+  var cells = [];
+  var R = { on: false, t0: 0, score: 0, combo: 0, max: 0, served: 0, active: 0, spawnT: 0, tickT: 0 };
+
+  function buildRushGrid() {
+    var grid = $('rushGrid');
+    for (var i = 0; i < 9; i++) {
+      var d = el('div', 'cell');
+      grid.appendChild(d);
+      cells.push({ el: d, busy: false, leave: null });
+    }
   }
-  offTake.addEventListener('click', function () {
-    S.coins += pendingOffline; S.total += pendingOffline;
-    toast('Cobraste ₲ ' + fmt(pendingOffline));
-    pendingOffline = 0;
-    closeOffline(); save(); render();
-  });
-  offDouble.addEventListener('click', function () {
-    var amt = pendingOffline * 2;
-    watch('offline-x2', function () {
-      S.coins += amt; S.total += amt;
-      toast('Cobraste ₲ ' + fmt(amt));
-      pendingOffline = 0;
-      closeOffline();
+  function faceSVG(vip) {
+    return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + (vip ? '#F3C64A' : '#E9C29B') + '"/>' +
+      (vip ? '<path d="M12 20 L18 6 L30 16 L42 6 L48 20 Z" fill="#C98A0E"/>' : '<path d="M8 26 Q30 -2 52 26 Z" fill="#5A3E2B"/>') +
+      '<circle cx="22" cy="33" r="3" fill="#2B1D12"/><circle cx="38" cy="33" r="3" fill="#2B1D12"/>' +
+      '<path d="M21 43 Q30 51 39 43" stroke="#2B1D12" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
+  }
+  function updateHud() {
+    rushScoreEl.textContent = R.score + ' pts';
+    rushComboEl.textContent = 'Combo x' + R.combo;
+  }
+  function rushCooldown() { return Math.max(0, (S.rushReadyAt - Date.now()) / 1000); }
+  function renderRushState() {
+    if (R.on) return;
+    var cd = rushCooldown();
+    rushInfo.textContent = 'Cada punto vale ₲ ' + fmt(rushUnit()) + '. Mejor puntaje: ' + S.stats.bestScore + '.';
+    rushStart.disabled = cd > 0 || S.rushPending > 0 || adBusy;
+    rushStartText.textContent = cd > 0 ? 'Disponible en ' + mmss(cd) : 'Empezar';
+    rushSkip.hidden = !(cd > 0);
+    rushSkip.disabled = adBusy;
+  }
+  function startRush() {
+    if (R.on || S.rushPending > 0 || Date.now() < S.rushReadyAt) return;
+    R.on = true; R.t0 = performance.now(); R.score = 0; R.combo = 0; R.max = 0; R.served = 0; R.active = 0;
+    rushIntro.hidden = true;
+    rushPlay.hidden = false;
+    rushBar.style.width = '100%';
+    rushTimeEl.textContent = Math.round(RUSH_MS / 1000) + ' s';
+    updateHud();
+    R.tickT = setInterval(rushTick, 100);
+    scheduleSpawn(250);
+  }
+  function rushTick() {
+    var p = (performance.now() - R.t0) / RUSH_MS;
+    if (p >= 1) { endRush(); return; }
+    rushBar.style.width = ((1 - p) * 100) + '%';
+    rushTimeEl.textContent = Math.ceil(RUSH_MS / 1000 * (1 - p)) + ' s';
+  }
+  function scheduleSpawn(delay) {
+    R.spawnT = setTimeout(function () {
+      if (!R.on) return;
+      spawnGuest();
+      var p = (performance.now() - R.t0) / RUSH_MS;
+      scheduleSpawn(Math.max(330, 620 - p * 260));
+    }, delay);
+  }
+  function spawnGuest() {
+    if (R.active >= 3) return;
+    var free = [];
+    cells.forEach(function (c, i) { if (!c.busy) free.push(i); });
+    if (!free.length) return;
+    var cell = cells[free[Math.floor(Math.random() * free.length)]];
+    cell.busy = true;
+    R.active++;
+    var vip = Math.random() < 0.12;
+    var life = vip ? 900 : Math.max(750, 1500 - R.served * 12);
+    var b = el('button', 'guest' + (vip ? ' vip' : ''));
+    b.type = 'button';
+    b.setAttribute('aria-label', vip ? 'Cliente dorado' : 'Cliente');
+    b.innerHTML = faceSVG(vip);
+    var done = false, timer = 0;
+    function leave(missed) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (b.parentNode) b.parentNode.removeChild(b);
+      cell.busy = false;
+      cell.leave = null;
+      R.active = Math.max(0, R.active - 1);
+      if (missed && R.on) { R.combo = 0; updateHud(); Snd.miss(); }
+    }
+    timer = setTimeout(function () { leave(true); }, life);
+    b.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      if (done || !R.on) return;
+      R.combo += 1;
+      if (R.combo > R.max) R.max = R.combo;
+      var pts = (vip ? 5 : 1) + Math.floor(R.combo / 5);
+      R.score += pts;
+      R.served += 1;
+      Snd.pop(R.combo);
+      if (!reduce) spawnFloat(cell.el, String(pts), cell.el.clientWidth / 2, cell.el.clientHeight / 3);
+      updateHud();
+      leave(false);
     });
+    cell.leave = leave;
+    cell.el.appendChild(b);
+  }
+  function endRush() {
+    if (!R.on) return;
+    R.on = false;
+    clearInterval(R.tickT);
+    clearTimeout(R.spawnT);
+    cells.forEach(function (c) { if (c.leave) c.leave(false); });
+    R.active = 0;
+    rushPlay.hidden = true;
+    rushIntro.hidden = false;
+    S.stats.rushes += 1;
+    S.stats.bestCombo = Math.max(S.stats.bestCombo, R.max);
+    S.stats.bestScore = Math.max(S.stats.bestScore, R.score);
+    bump('rush', 1);
+    S.rushReadyAt = Date.now() + RUSH_COOLDOWN_MS;
+    var payout = rushUnit() * R.score;
+    if (payout > 0) {
+      S.rushPending = payout;
+      save();
+      pushReward({
+        key: 'rush',
+        title: 'Hora pico terminada',
+        text: 'Atendiste ' + R.served + (R.served === 1 ? ' cliente' : ' clientes') + ' con un combo máximo de x' + R.max + ' (' + R.score + ' puntos).',
+        amount: payout,
+        onDone: function () { S.rushPending = 0; }
+      });
+    } else {
+      save();
+      toast('Nadie fue atendido esta vez. Probá de nuevo.');
+    }
+    render();
+  }
+  rushStart.addEventListener('click', startRush);
+  rushSkip.addEventListener('click', function () {
+    watch('hora-pico', function () { S.rushReadyAt = 0; startRush(); });
   });
+
+  /* ---------- Metas ---------- */
+  var streakTitle = $('streakTitle'), streakDots = $('streakDots');
+  var missionList = $('missionList'), achList = $('achList');
+
+  function metaRow(title, sub, prog, target, btn, cls) {
+    var card = el('div', 'card' + (cls ? ' ' + cls : ''));
+    var info = el('div');
+    info.appendChild(el('h3', null, title));
+    if (sub) info.appendChild(el('p', null, sub));
+    var bar = el('div', 'bar');
+    var fill = el('i');
+    fill.style.width = Math.min(100, prog / target * 100) + '%';
+    bar.appendChild(fill);
+    info.appendChild(bar);
+    card.appendChild(info);
+    card.appendChild(btn);
+    return card;
+  }
+  function claimButton(amount, enabled, label) {
+    var btn = el('button', 'btn btn-buy');
+    btn.type = 'button';
+    btn.appendChild(el('small', null, label));
+    btn.appendChild(el('span', null, '₲ ' + fmt(amount)));
+    btn.disabled = !enabled;
+    return btn;
+  }
+  function renderMetas() {
+    streakTitle.textContent = 'Racha de ' + S.streak + (S.streak === 1 ? ' día' : ' días');
+    var filled = ((Math.max(1, S.streak) - 1) % 7) + 1;
+    streakDots.innerHTML = '';
+    for (var i = 0; i < 7; i++) streakDots.appendChild(el('span', 'dot' + (i < filled ? ' on' : '')));
+
+    missionList.innerHTML = '';
+    S.missions.list.forEach(function (m) {
+      var prog = missionProgress(m);
+      var done = prog >= m.target;
+      var btn = m.claimed ? claimButton(m.reward, false, 'Cobrada') : claimButton(m.reward, done, done ? 'Cobrar' : 'Premio');
+      btn.addEventListener('click', function () {
+        if (m.claimed || missionProgress(m) < m.target) return;
+        m.claimed = true;
+        grant(m.reward);
+        Snd.win();
+        toast('Misión cumplida: +₲ ' + fmt(m.reward));
+        save(); render(); renderMetas();
+      });
+      missionList.appendChild(metaRow(missionText(m), fmt(prog) + ' / ' + fmt(m.target), prog, m.target, btn, m.claimed ? 'done' : (done ? 'ready' : '')));
+    });
+
+    achList.innerHTML = '';
+    ACHIEVEMENTS.forEach(function (a) {
+      var prog = Math.min(a.target, metric(a.metric));
+      var state = S.ach[a.id];
+      var btn = state === 'claimed' ? claimButton(a.reward, false, 'Cobrado')
+        : claimButton(a.reward, state === 'ready', state === 'ready' ? 'Cobrar' : 'Premio');
+      btn.addEventListener('click', function () {
+        if (S.ach[a.id] !== 'ready') return;
+        S.ach[a.id] = 'claimed';
+        grant(a.reward);
+        Snd.win();
+        toast('Logro cobrado: +₲ ' + fmt(a.reward));
+        save(); render(); renderMetas();
+      });
+      achList.appendChild(metaRow(a.name, a.desc + ' · ' + fmt(prog) + ' / ' + fmt(a.target), prog, a.target, btn, state === 'claimed' ? 'done' : (state === 'ready' ? 'ready' : '')));
+    });
+  }
+  function checkAchievements() {
+    ACHIEVEMENTS.forEach(function (a) {
+      if (!S.ach[a.id] && metric(a.metric) >= a.target) {
+        S.ach[a.id] = 'ready';
+        toast('Logro desbloqueado: ' + a.name);
+        Snd.win();
+      }
+    });
+  }
+
+  /* ---------- Pestañas ---------- */
+  var views = { puesto: $('view-puesto'), rush: $('view-rush'), metas: $('view-metas') };
+  var tabs = {};
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { tabs[t.getAttribute('data-view')] = t; });
+  var currentView = 'puesto';
+  function setView(name) {
+    if (R.on && name !== 'rush') { toast('Terminá la hora pico antes de cambiar de pantalla.'); return; }
+    currentView = name;
+    Object.keys(views).forEach(function (k) {
+      views[k].hidden = (k !== name);
+      tabs[k].setAttribute('aria-current', k === name ? 'page' : 'false');
+    });
+    if (name === 'metas') renderMetas();
+    try { window.scrollTo(0, 0); } catch (e) {}
+  }
+  Object.keys(tabs).forEach(function (k) { tabs[k].addEventListener('click', function () { setView(k); }); });
 
   /* ---------- Reiniciar (con confirmación dentro de la página) ---------- */
   var resetBtn = $('reset'), resetTimer = 0, resetArmed = false;
@@ -677,12 +1376,17 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     resetArmed = false;
     resetBtn.textContent = 'Reiniciar partida';
     S = fresh();
-    save(); render();
+    sceneKey = '';
+    checkDay();
+    save();
+    render(); renderMetas(); renderMute();
+    queueDaily();
     toast('Partida reiniciada');
   });
 
   /* ---------- Reloj del juego ---------- */
   var last = performance.now();
+  var slow = 0;
   setInterval(function () {
     var now = performance.now();
     var dt = (now - last) / 1000;
@@ -692,21 +1396,42 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     var gain = autoBase() * mult() * dt;
     S.coins += gain; S.total += gain;
     if (S.chest < CHEST_SECONDS) S.chest = Math.min(CHEST_SECONDS, S.chest + dt);
+    checkStage();
+    slow += 1;
+    if (slow >= 10) {
+      slow = 0;
+      checkAchievements();
+      if (currentView === 'metas' && rewardModal.hidden) renderMetas();
+    }
     render();
   }, 100);
   setInterval(function () { if (!document.hidden) save(); }, 5000);
 
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { save(); }
-    else { last = performance.now(); checkOffline(); }
+    if (document.hidden) {
+      if (R.on) endRush();
+      save();
+    } else {
+      last = performance.now();
+      if (checkDay()) queueDaily();
+      checkOffline();
+    }
   });
   window.addEventListener('pagehide', save);
 
+  /* ---------- Arranque ---------- */
   var adNote = $('adNote');
   if (native && adNote) adNote.textContent = 'Anuncios de prueba de Google. En la versión publicada serán anuncios reales de AdMob.';
   buildUpgrades();
+  buildRushGrid();
+  renderMute();
+  checkDay();
+  checkStage();
+  queueDaily();
   checkOffline();
+  queueRushPending();
   render();
+  renderMetas();
   if (native) admobPreload();
 })();
 </script>
