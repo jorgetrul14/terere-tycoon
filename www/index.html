@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Lilita+One&display=swap">
 <style>
-/* Layout: app de celular con tres pantallas (Puesto, Hora pico, Metas) y barra de pestañas abajo.
+/* Layout: app de celular con cinco pantallas (Puesto, Equipo, Juegos, Colección, Metas) y barra de pestañas abajo.
    El saldo queda siempre arriba. Dorado = premio por ver un anuncio. Verde yerba = comprar. */
 :root {
   --bg: #EDF3EA;
@@ -81,6 +81,7 @@ body {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 }
 .view { display: flex; flex-direction: column; gap: 1.4rem; }
+.panel { display: flex; flex-direction: column; gap: 1rem; }
 :focus-visible { outline: 3px solid var(--ice); outline-offset: 2px; }
 
 .top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
@@ -114,8 +115,14 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .zone-top strong { font: 400 1.1rem/1.1 var(--font-display); }
 .zone-top span { color: var(--muted); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
 .bar.green i { background: var(--yerba); }
+.scene-wrap { position: relative; }
 .scene { border-radius: 1rem; overflow: hidden; border: 1px solid var(--line); line-height: 0; }
 .scene svg { width: 100%; height: auto; display: block; }
+.bubble {
+  position: absolute; left: 0.6rem; top: 0.6rem; max-width: 72%;
+  background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 0.8rem;
+  padding: 0.35rem 0.6rem; font-size: 0.8rem; line-height: 1.25;
+}
 .cust { animation: walk linear infinite; }
 @keyframes walk {
   from { transform: translateX(-20px); }
@@ -153,9 +160,11 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 }
 .card.ready { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
 .card.done { opacity: 0.7; }
+.card.stack1 { grid-template-columns: minmax(0, 1fr); }
 .card h3 { margin: 0; font-size: 1rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; }
 .card h3 .lv { font-size: 0.75rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .card p { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.card p b { color: var(--fg); }
 .bar { height: 0.5rem; border-radius: 999px; background: var(--panel-2); overflow: hidden; margin-top: 0.55rem; }
 .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
 .dots { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
@@ -176,11 +185,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .btn:disabled svg { opacity: 0.45; }
 .btn-wide { width: 100%; }
 
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; background: var(--panel-2); padding: 0.3rem; border-radius: 1rem; }
+.seg button {
+  position: relative; border: 0; background: none; color: var(--muted); font: 700 0.8rem/1.1 var(--font-body);
+  padding: 0.6rem 0.2rem; border-radius: 0.75rem; cursor: pointer; min-height: 2.75rem; touch-action: manipulation;
+}
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 0 0 1px var(--line); }
+.seg .pip { position: absolute; top: 0.35rem; right: 0.4rem; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--gold); }
+
 .rush-card { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .rush-card p { margin: 0; color: var(--muted); max-width: 65ch; }
 .hud { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
 .hud .stat { font: 400 1.4rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
-#rushPlay { display: flex; flex-direction: column; gap: 0.6rem; }
+.play { display: flex; flex-direction: column; gap: 0.6rem; }
 .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
 .cell { position: relative; aspect-ratio: 1; border-radius: 1rem; background: var(--panel-2); overflow: hidden; }
 .guest {
@@ -191,6 +208,87 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .guest.vip { filter: drop-shadow(0 0 0.35rem var(--gold)); }
 @keyframes pop { from { transform: scale(0.4); } to { transform: scale(1); } }
 
+.wheel-wrap { position: relative; width: min(76vw, 16rem); aspect-ratio: 1; margin-inline: auto; }
+.wheel-pointer {
+  position: absolute; top: -0.45rem; left: 50%; transform: translateX(-50%); z-index: 2; width: 0; height: 0;
+  border-left: 0.7rem solid transparent; border-right: 0.7rem solid transparent; border-top: 1.3rem solid var(--fg);
+}
+.wheel {
+  width: 100%; height: 100%; border-radius: 50%; transition: transform 4.2s cubic-bezier(0.12, 0.7, 0.1, 1);
+  box-shadow: 0 0 0 0.35rem var(--panel), 0 0 0 0.45rem var(--line); line-height: 0;
+}
+.wheel svg { width: 100%; height: 100%; display: block; }
+
+.mgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.mcard { position: relative; aspect-ratio: 0.9; border: 0; padding: 0; background: none; cursor: pointer; perspective: 600px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.mcard .inner { position: absolute; inset: 0; transition: transform 0.35s; transform-style: preserve-3d; }
+.mcard.up .inner, .mcard.done .inner { transform: rotateY(180deg); }
+.mcard .face {
+  position: absolute; inset: 0; border-radius: 0.8rem; display: grid; place-items: center;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.mcard .back { background: var(--yerba); }
+.mcard .back::after { content: ''; width: 38%; aspect-ratio: 1; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.4); }
+.mcard .front { background: var(--panel); border: 2px solid var(--line); transform: rotateY(180deg); }
+.mcard.done .front { border-color: var(--gold); }
+.mcard svg { width: 76%; height: auto; }
+
+.order { display: grid; grid-template-columns: 3rem repeat(3, minmax(0, 1fr)); gap: 0.5rem; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 0.6rem; }
+.order .who svg { width: 100%; height: auto; display: block; }
+.slot { border: 2px dashed var(--line); border-radius: 0.8rem; padding: 0.3rem 0.1rem; display: flex; flex-direction: column; align-items: center; gap: 0.1rem; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-align: center; min-width: 0; }
+.slot svg { width: 2.6rem; height: 2.6rem; }
+.slot.ok { border-style: solid; border-color: var(--yerba); background: var(--panel-2); }
+.slot.ok svg { opacity: 0.35; }
+.shelf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.shelf button {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 0.9rem; padding: 0.5rem 0.2rem; cursor: pointer; color: var(--fg);
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem; font: 700 0.78rem/1.1 var(--font-body); min-height: 4.6rem;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.shelf button svg { width: 2.8rem; height: 2.8rem; pointer-events: none; }
+.shake { animation: shake 0.25s; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+.hcard { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; }
+.hcard.off .avatar { filter: grayscale(1); opacity: 0.55; }
+.hhead { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); gap: 0.75rem; align-items: center; }
+.avatar { background: var(--panel-2); border-radius: 50%; line-height: 0; overflow: hidden; }
+.avatar svg { width: 100%; height: auto; display: block; }
+.hhead h3 { margin: 0; font-size: 1rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.5rem; }
+.hhead h3 small { color: var(--muted); font-weight: 600; font-size: 0.78rem; }
+.hhead .quote { margin: 0.1rem 0 0; font-style: italic; color: var(--muted); font-size: 0.85rem; }
+.heff { margin: 0; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 0.1rem; }
+.heff b { color: var(--fg); }
+.hbuy { flex-direction: row; justify-content: space-between; width: 100%; }
+
+.cgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.citem {
+  position: relative; background: var(--panel); border: 2px solid var(--line); border-radius: 0.9rem; padding: 0.4rem 0.2rem 0.35rem; cursor: pointer; color: var(--fg);
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem; font: 700 0.7rem/1.1 var(--font-body); min-width: 0; text-align: center;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.citem svg { width: 100%; max-width: 3.2rem; height: auto; }
+.citem.rara { border-color: var(--ice); }
+.citem.epica { border-color: var(--gold); }
+.citem.locked svg { filter: grayscale(1) brightness(0.7); opacity: 0.3; }
+.citem.locked { color: var(--muted); border-color: var(--line); }
+.pips { display: flex; gap: 0.15rem; }
+.pip2 { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--panel-2); border: 1px solid var(--line); }
+.pip2.on { background: var(--gold); border-color: var(--gold); }
+.sum { font-size: 0.9rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-variant-numeric: tabular-nums; }
+.sum b { color: var(--fg); }
+.odds { font-size: 0.8rem; color: var(--muted); margin: 0; max-width: 65ch; }
+.btnrow { display: flex; flex-direction: column; gap: 0.5rem; }
+.btnrow .btn { flex-direction: row; justify-content: space-between; width: 100%; }
+
+.pull-icon { width: 7rem; margin-inline: auto; line-height: 0; animation: pop 0.25s ease-out; }
+.pull-icon svg { width: 100%; height: auto; }
+.pull-name { text-align: center; font: 400 1.25rem/1.1 var(--font-display); color: var(--fg) !important; }
+.pull-tag { align-self: center; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.7rem; border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+.pull-tag.rara { background: var(--ice); color: #FFFFFF; }
+.pull-tag.epica { background: var(--gold); color: var(--gold-fg); }
+.dialog .centered { text-align: center; }
+
 .foot { color: var(--muted); font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start; }
 .foot p { margin: 0; max-width: 65ch; }
 .link { background: none; border: 0; padding: 0.4rem 0; color: var(--muted); font: 600 0.82rem var(--font-body); text-decoration: underline; cursor: pointer; }
@@ -200,19 +298,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   background: var(--panel); border-top: 1px solid var(--line);
   padding-top: 0.35rem;
   padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
 }
-.nav-inner { display: flex; gap: 0.25rem; max-width: 30rem; margin-inline: auto; }
+.nav-inner { display: flex; gap: 0.15rem; max-width: 30rem; margin-inline: auto; }
 .tab {
   flex: 1; min-width: 0; position: relative; border: 0; background: none; color: var(--muted);
-  font: 700 0.72rem/1.1 var(--font-body); padding: 0.4rem 0.2rem; border-radius: 0.75rem; min-height: 3.1rem;
+  font: 700 0.7rem/1.1 var(--font-body); padding: 0.4rem 0.1rem; border-radius: 0.75rem; min-height: 3.1rem;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; cursor: pointer; touch-action: manipulation;
 }
 .tab svg { width: 1.4rem; height: 1.4rem; }
 .tab[aria-current="page"] { background: var(--panel-2); color: var(--fg); }
 .badge {
-  position: absolute; top: 0.15rem; left: calc(50% + 0.6rem); min-width: 1.05rem; height: 1.05rem; padding: 0 0.25rem;
+  position: absolute; top: 0.1rem; left: calc(50% + 0.5rem); min-width: 1.05rem; height: 1.05rem; padding: 0 0.25rem;
   border-radius: 999px; background: var(--gold); color: var(--gold-fg); font-size: 0.65rem; font-weight: 700;
   display: grid; place-items: center; font-variant-numeric: tabular-nums;
 }
@@ -240,7 +338,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 }
 .ad-stage strong { font: 400 1.15rem/1.2 var(--font-display); text-wrap: balance; }
 .ad-stage span { display: block; font-size: 0.8rem; opacity: 0.9; margin-top: 0.25rem; }
-.ad-count { font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+.ad-count { font-weight: 700; color: var(--fg) !important; font-variant-numeric: tabular-nums; }
 
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%); z-index: 30;
@@ -255,7 +353,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   .tap:active { transform: none; }
   .float { display: none; }
   .cust { animation: none; }
-  .guest { animation: none; }
+  .guest, .pull-icon { animation: none; }
+  .mcard .inner { transition: none; }
+  .shake { animation: none; }
 }
 </style>
 </head>
@@ -276,16 +376,21 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     <div class="rates">
       <span><b id="perTap">₲ 1</b> por toque</span>
       <span><b id="perSec">₲ 0</b> por segundo</span>
+      <span id="branchRate" hidden><b id="branchMultTxt">x1,5</b> por sucursales</span>
     </div>
     <span class="boost" id="boost" hidden>Ganancias x2 · <span id="boostLeft">2:00</span></span>
   </section>
 
+  <!-- ===== PUESTO ===== -->
   <section class="view" id="view-puesto">
     <div class="zone">
       <div class="zone-top"><strong id="zoneName">Puesto del barrio</strong><span id="zoneNext"></span></div>
       <div class="bar green"><i id="zoneFill"></i></div>
     </div>
-    <div class="scene" id="scene"></div>
+    <div class="scene-wrap">
+      <div class="scene" id="scene"></div>
+      <div class="bubble" id="bubble" hidden></div>
+    </div>
 
     <div class="tap-wrap" id="tapWrap">
       <button class="tap" id="tap" type="button" aria-label="Tocar la guampa para ganar guaraníes">
@@ -341,29 +446,159 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     </section>
   </section>
 
-  <section class="view" id="view-rush" hidden>
-    <div class="rush-card" id="rushIntro">
-      <h2>Hora pico</h2>
-      <p>Llegan clientes con sed. Tocalos antes de que se vayan: cada uno suma puntos y los combos suman más. Los clientes dorados valen más. Dura 20 segundos.</p>
-      <p id="rushInfo"></p>
-      <button class="btn btn-buy btn-wide" id="rushStart" type="button"><span id="rushStartText">Empezar</span></button>
-      <button class="btn btn-ad btn-wide" id="rushSkip" type="button" hidden>
-        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
-        <span>Jugar ya viendo un anuncio</span>
-      </button>
+  <!-- ===== EQUIPO ===== -->
+  <section class="view" id="view-equipo" hidden>
+    <section class="block" aria-labelledby="h-team">
+      <h2 id="h-team">Tu equipo</h2>
+      <p class="odds">Cada ayudante da un bonus que se queda con vos aunque abras una sucursal. Subilos hasta el nivel 10.</p>
+      <div class="list" id="helperList"></div>
+    </section>
+  </section>
+
+  <!-- ===== JUEGOS ===== -->
+  <section class="view" id="view-juegos" hidden>
+    <div class="seg" id="seg" role="group" aria-label="Minijuegos">
+      <button type="button" data-game="rush" aria-pressed="true">Hora pico<span class="pip" id="pipRush" hidden></span></button>
+      <button type="button" data-game="ruleta" aria-pressed="false">Ruleta<span class="pip" id="pipRuleta" hidden></span></button>
+      <button type="button" data-game="memoria" aria-pressed="false">Memoria<span class="pip" id="pipMemoria" hidden></span></button>
+      <button type="button" data-game="pedidos" aria-pressed="false">Pedidos<span class="pip" id="pipPedidos" hidden></span></button>
     </div>
-    <div id="rushPlay" hidden>
-      <div class="hud">
-        <span class="stat" id="rushScore">0 pts</span>
-        <span class="stat" id="rushCombo">Combo x0</span>
-        <span class="stat" id="rushTime">20 s</span>
+
+    <div class="panel" id="game-rush">
+      <div class="rush-card" id="rushIntro">
+        <h2>Hora pico</h2>
+        <p>Llegan clientes con sed. Tocalos antes de que se vayan: cada uno suma puntos y los combos suman más. Los clientes dorados valen más. Dura 20 segundos.</p>
+        <p id="rushInfo"></p>
+        <button class="btn btn-buy btn-wide" id="rushStart" type="button"><span id="rushStartText">Empezar</span></button>
+        <button class="btn btn-ad btn-wide" id="rushSkip" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Jugar ya viendo un anuncio</span>
+        </button>
       </div>
-      <div class="bar"><i id="rushBar" style="width:100%"></i></div>
-      <div class="grid3" id="rushGrid"></div>
+      <div class="play" id="rushPlay" hidden>
+        <div class="hud">
+          <span class="stat" id="rushScore">0 pts</span>
+          <span class="stat" id="rushCombo">Combo x0</span>
+          <span class="stat" id="rushTime">20 s</span>
+        </div>
+        <div class="bar"><i id="rushBar" style="width:100%"></i></div>
+        <div class="grid3" id="rushGrid"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="game-ruleta" hidden>
+      <div class="rush-card">
+        <h2>Ruleta de la suerte</h2>
+        <p>Un giro gratis por día y hasta 3 más viendo anuncios. Hay guaraníes, ganancias x2, canastas y cofres.</p>
+        <div class="wheel-wrap"><div class="wheel-pointer"></div><div class="wheel" id="wheel"></div></div>
+        <p id="wheelInfo"></p>
+        <button class="btn btn-buy btn-wide" id="wheelFree" type="button"><span id="wheelFreeText">Girar gratis</span></button>
+        <button class="btn btn-ad btn-wide" id="wheelAd" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span id="wheelAdText">Girar viendo un anuncio</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" id="game-memoria" hidden>
+      <div class="rush-card" id="memIntro">
+        <h2>Memoria de yuyos</h2>
+        <p>Da vuelta las cartas y encontrá las 6 parejas de yuyos antes de que se acabe el tiempo. Tenés 45 segundos.</p>
+        <p id="memInfo"></p>
+        <button class="btn btn-buy btn-wide" id="memStart" type="button"><span id="memStartText">Empezar</span></button>
+        <button class="btn btn-ad btn-wide" id="memSkip" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Jugar ya viendo un anuncio</span>
+        </button>
+      </div>
+      <div class="play" id="memPlay" hidden>
+        <div class="hud">
+          <span class="stat" id="memPairs">0 / 6 parejas</span>
+          <span class="stat" id="memTime">45 s</span>
+        </div>
+        <div class="bar"><i id="memBar" style="width:100%"></i></div>
+        <div class="mgrid" id="memGrid"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="game-pedidos" hidden>
+      <div class="rush-card" id="ordIntro">
+        <h2>Pedidos</h2>
+        <p>Cada cliente pide un tereré con 3 yuyos. Tocá los yuyos del estante que pide, rápido y sin equivocarte. Cada error te saca tiempo. Dura 25 segundos.</p>
+        <p id="ordInfo"></p>
+        <button class="btn btn-buy btn-wide" id="ordStart" type="button"><span id="ordStartText">Empezar</span></button>
+        <button class="btn btn-ad btn-wide" id="ordSkip" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Jugar ya viendo un anuncio</span>
+        </button>
+      </div>
+      <div class="play" id="ordPlay" hidden>
+        <div class="hud">
+          <span class="stat" id="ordScore">0 pts</span>
+          <span class="stat" id="ordCombo">Racha 0</span>
+          <span class="stat" id="ordTime">25 s</span>
+        </div>
+        <div class="bar"><i id="ordBar" style="width:100%"></i></div>
+        <div class="order" id="ordOrder"></div>
+        <div class="shelf" id="ordShelf"></div>
+      </div>
     </div>
   </section>
 
+  <!-- ===== COLECCIÓN ===== -->
+  <section class="view" id="view-coleccion" hidden>
+    <section class="block" aria-labelledby="h-coll">
+      <h2 id="h-coll">Colección</h2>
+      <div class="sum">
+        <span><b id="collCount">0 / 16</b> objetos</span>
+        <span><b id="collTap">+0%</b> por toque</span>
+        <span><b id="collAuto">+0%</b> de ingreso</span>
+      </div>
+    </section>
+    <section class="block" aria-labelledby="h-bask">
+      <h2 id="h-bask">Canastas del mercado</h2>
+      <div class="card stack1">
+        <div>
+          <p>Cada canasta trae una guampa o un yuyo. Si repetís uno, sube de nivel hasta el 5. Cada 10 canastas sale al menos una rara.</p>
+          <p class="odds">Probabilidades: común 70%, rara 25%, épica 5%.</p>
+        </div>
+        <div class="btnrow">
+          <button class="btn btn-buy" id="basketBuy" type="button"><small>Abrir canasta</small><span id="basketBuyCost">₲ 1.500</span></button>
+          <button class="btn btn-buy" id="basketTok" type="button" hidden><small>Canasta gratis</small><span id="basketTokN">1</span></button>
+          <button class="btn btn-ad" id="basketAd" type="button">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+            <span id="basketAdText">Canasta gratis viendo un anuncio</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <section class="block" aria-labelledby="h-g">
+      <h2 id="h-g">Guampas <small style="font:700 .8rem var(--font-body);color:var(--muted)">bonus por toque</small></h2>
+      <div class="cgrid" id="gGrid"></div>
+    </section>
+    <section class="block" aria-labelledby="h-y">
+      <h2 id="h-y">Yuyos <small style="font:700 .8rem var(--font-body);color:var(--muted)">bonus de ingreso por segundo</small></h2>
+      <div class="cgrid" id="yGrid"></div>
+    </section>
+  </section>
+
+  <!-- ===== METAS ===== -->
   <section class="view" id="view-metas" hidden>
+    <section class="block" aria-labelledby="h-branch">
+      <h2 id="h-branch">Sucursales</h2>
+      <div class="card stack1" id="branchCard">
+        <div>
+          <h3 id="branchTitle">Tu primera sucursal</h3>
+          <p id="branchText"></p>
+          <div class="bar green"><i id="branchFill"></i></div>
+          <p class="odds" id="branchNeed"></p>
+        </div>
+        <div>
+          <p class="odds">Al abrir una sucursal se reinician tus guaraníes y tus mejoras. Se quedan tus ayudantes, la colección, los logros y la racha. Cada sucursal suma +50% a todas tus ganancias para siempre.</p>
+        </div>
+        <button class="btn btn-buy btn-wide" id="branchBtn" type="button"><small id="branchBtnSmall">Abrir sucursal</small><span id="branchBtnText"></span></button>
+      </div>
+    </section>
     <section class="block" aria-labelledby="h-streak">
       <h2 id="h-streak">Racha diaria</h2>
       <div class="card">
@@ -396,9 +631,17 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l1.5-5h15L21 10"/><path d="M3 10c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3c0 1.7 1.3 3 3 3s3-1.3 3-3"/><path d="M5 13v7h14v-7"/></svg>
       <span>Puesto</span><span class="badge" id="badgePuesto" hidden></span>
     </button>
-    <button class="tab" type="button" data-view="rush" aria-current="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>
-      <span>Hora pico</span><span class="badge" id="badgeRush" hidden></span>
+    <button class="tab" type="button" data-view="equipo" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/></svg>
+      <span>Equipo</span><span class="badge" id="badgeEquipo" hidden></span>
+    </button>
+    <button class="tab" type="button" data-view="juegos" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/></svg>
+      <span>Juegos</span><span class="badge" id="badgeJuegos" hidden></span>
+    </button>
+    <button class="tab" type="button" data-view="coleccion" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+      <span>Colección</span><span class="badge" id="badgeColeccion" hidden></span>
     </button>
     <button class="tab" type="button" data-view="metas" aria-current="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v5a6 6 0 0 1-12 0z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M12 14v4"/><path d="M8 21h8"/></svg>
@@ -418,6 +661,17 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
         <span id="rwDoubleText"></span>
       </button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="pullModal" role="dialog" aria-modal="true" aria-labelledby="pullTitle" hidden>
+  <div class="dialog">
+    <h2 class="centered" id="pullTitle"></h2>
+    <div class="pull-icon" id="pullIcon"></div>
+    <p class="pull-name" id="pullName"></p>
+    <span class="pull-tag" id="pullTag"></span>
+    <p class="centered" id="pullText"></p>
+    <button class="btn btn-buy btn-wide" id="pullOk" type="button">Genial</button>
   </div>
 </div>
 
@@ -446,8 +700,14 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var BOOST_MAX_MS = 600000;
   var OFFLINE_CAP = 3 * 3600;
   var AD_SECONDS = 5;
-  var RUSH_MS = 20000;
-  var RUSH_COOLDOWN_MS = 90000;
+  var RUSH_MS = 20000, RUSH_CD = 90000;
+  var MEM_MS = 45000, MEM_CD = 120000;
+  var ORD_MS = 25000, ORD_CD = 120000;
+  var BASKET_AD_CD = 6 * 60000;
+  var WHEEL_EXTRA_MAX = 3;
+  var BRANCH_BASE = 1000000, BRANCH_STEP = 8, BRANCH_BONUS = 0.5;
+  var HELPER_MAX = 10, HELPER_GROWTH = 1.75;
+  var ITEM_MAX = 5;
 
   var UPGRADES = [
     { id: 'hielo', name: 'Más hielo', desc: '+1 ₲ por toque', kind: 'tap', amount: 1, base: 25, growth: 1.28 },
@@ -465,6 +725,62 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     { name: 'Cadena nacional', at: 10000000, sky: ['#141C3A', '#3B4B8C'], bld: '#0C1226', n: 9, night: true }
   ];
   var CUST_COLORS = ['#D9503F', '#3F7FD9', '#8E5BC9', '#E0A526', '#2E9C6A', '#D96C9E'];
+  var CITIES = ['Luque', 'San Lorenzo', 'Ciudad del Este', 'Encarnación', 'Pedro Juan Caballero', 'Concepción'];
+
+  /* ---------- Ayudantes ---------- */
+  var HELPERS = [
+    { id: 'rosa', name: 'Rosa', role: 'Cebadora', quote: 'El secreto está en el yuyo fresquito.', base: 2500, sx: 120,
+      eff: function (l) { return '+' + (l * 12) + '% de ingreso por segundo'; },
+      col: { skin: '#E2B48C', shirt: '#3F8F4A' } },
+    { id: 'carlitos', name: 'Carlitos', role: 'Repartidor', quote: '¡Yo llego antes que el calor!', base: 4000, sx: 252,
+      eff: function (l) { return '+' + (l * 12) + '% por toque'; },
+      col: { skin: '#C68E67', shirt: '#E0A526' } },
+    { id: 'tito', name: 'Tito', role: 'Heladero', quote: 'Hielo bien duro, tereré bien frío.', base: 15000, sx: 74,
+      eff: function (l) { return 'Cofre ' + (l * 15) + '% más rápido y +' + (l * 10) + '% de premio'; },
+      col: { skin: '#EBC09A', shirt: '#1F83A6' } },
+    { id: 'nilda', name: 'Nilda', role: 'Contadora', quote: 'Cuenta clara, negocio que dura.', base: 50000, sx: 304,
+      eff: function (l) { return '+' + (l * 10) + '% en minijuegos y +' + (l * 30) + ' min de ganancias sin conexión'; },
+      col: { skin: '#A8734F', shirt: '#8E5BC9' } }
+  ];
+
+  /* ---------- Colección ---------- */
+  var RARITY = {
+    comun: { name: 'Común' },
+    rara: { name: 'Rara' },
+    epica: { name: 'Épica' }
+  };
+  var COLLECTION = [
+    { id: 'g-aspa', type: 'g', name: 'Guampa de aspa', short: 'Aspa', rar: 'comun', bonus: 0.02, flavor: 'La de toda la vida, hecha de cuerno de vaca.', c1: '#B99872', c2: '#6B4A2B', deco: 'bands' },
+    { id: 'g-alu', type: 'g', name: 'Guampa de aluminio', short: 'Aluminio', rar: 'comun', bonus: 0.02, flavor: 'Liviana, resistente y siempre lista.', c1: '#D5D9DD', c2: '#8A9299', deco: 'bands' },
+    { id: 'g-palo', type: 'g', name: 'Guampa de palo santo', short: 'Palo santo', rar: 'comun', bonus: 0.02, flavor: 'Madera con olor a monte.', c1: '#B07C4A', c2: '#6F4A24', deco: 'lines' },
+    { id: 'g-cuero', type: 'g', name: 'Guampa de cuero repujado', short: 'Repujada', rar: 'rara', bonus: 0.04, flavor: 'Cuero trabajado a mano, con dibujos.', c1: '#A5683C', c2: '#5B3418', deco: 'dots' },
+    { id: 'g-alb', type: 'g', name: 'Guampa albirroja', short: 'Albirroja', rar: 'rara', bonus: 0.04, flavor: 'Rojo y blanco para alentar.', c1: '#D9503F', c2: '#F4F1E8', deco: 'stripes' },
+    { id: 'g-nandu', type: 'g', name: 'Guampa con ñandutí', short: 'Ñandutí', rar: 'rara', bonus: 0.04, flavor: 'Con encaje fino como el de Itauguá.', c1: '#F4F1E8', c2: '#C9B58A', deco: 'lace' },
+    { id: 'g-plata', type: 'g', name: 'Guampa de plata', short: 'Plata', rar: 'epica', bonus: 0.08, flavor: 'Brilla en cualquier ronda.', c1: '#E6E9EB', c2: '#9AA3AA', deco: 'shine' },
+    { id: 'g-oro', type: 'g', name: 'Guampa de oro', short: 'Oro', rar: 'epica', bonus: 0.08, flavor: 'La guampa del campeón.', c1: '#F3C64A', c2: '#B8860B', deco: 'shine' },
+    { id: 'y-menta', type: 'y', name: "Menta'i", short: "Menta'i", rar: 'comun', bonus: 0.02, flavor: 'Fresca y perfumada.', c1: '#4CAF63', c2: '#2E6B3A', leaf: 'round' },
+    { id: 'y-poleo', type: 'y', name: 'Poleo', short: 'Poleo', rar: 'comun', bonus: 0.02, flavor: 'Hojita fina que no falta.', c1: '#7FB069', c2: '#3F6B3A', leaf: 'long' },
+    { id: 'y-ruda', type: 'y', name: 'Ruda', short: 'Ruda', rar: 'comun', bonus: 0.02, flavor: 'Arbusto de hojas chiquitas.', c1: '#5BA39B', c2: '#2F6B66', leaf: 'bush' },
+    { id: 'y-cedron', type: 'y', name: "Cedrón kapi'i", short: "Cedrón", rar: 'rara', bonus: 0.04, flavor: 'Con aroma a limón.', c1: '#9BC53D', c2: '#4F7A1F', leaf: 'long' },
+    { id: 'y-burrito', type: 'y', name: 'Burrito', short: 'Burrito', rar: 'rara', bonus: 0.04, flavor: 'Clásico de la yuyera.', c1: '#6DBE8C', c2: '#2F7A52', leaf: 'serr' },
+    { id: 'y-cocu', type: 'y', name: 'Cocú', short: 'Cocú', rar: 'rara', bonus: 0.04, flavor: 'Hojas verdes y firmes.', c1: '#3F8F4A', c2: '#235A2E', leaf: 'bush' },
+    { id: 'y-kaa', type: 'y', name: "Ka'a he'ẽ", short: "Ka'a he'ẽ", rar: 'epica', bonus: 0.08, flavor: 'La hoja dulce, con florcitas blancas.', c1: '#8BD17C', c2: '#F4F1E8', leaf: 'flower' },
+    { id: 'y-abuela', type: 'y', name: 'Yuyo de la abuela', short: 'De la abuela', rar: 'epica', bonus: 0.08, flavor: 'La receta que nadie cuenta.', c1: '#6DBE8C', c2: '#D9503F', leaf: 'flower' }
+  ];
+  var YUYOS = COLLECTION.filter(function (c) { return c.type === 'y'; });
+  function itemById(id) { for (var i = 0; i < COLLECTION.length; i++) { if (COLLECTION[i].id === id) return COLLECTION[i]; } return null; }
+
+  /* ---------- Ruleta ---------- */
+  var WHEEL = [
+    { id: 'c1', type: 'coins', m: 1, w: 22, fill: '#2E7A3D', txt: '#FFFFFF' },
+    { id: 'boost', type: 'boost', w: 14, fill: '#E3A41A', txt: '#2B1D00', label: 'x2 · 3 min' },
+    { id: 'c2', type: 'coins', m: 2, w: 18, fill: '#1F83A6', txt: '#FFFFFF' },
+    { id: 'basket', type: 'basket', w: 14, fill: '#8E5BC9', txt: '#FFFFFF', label: 'Canasta' },
+    { id: 'c4', type: 'coins', m: 4, w: 14, fill: '#2E7A3D', txt: '#FFFFFF' },
+    { id: 'chest', type: 'chest', w: 10, fill: '#C0483A', txt: '#FFFFFF', label: 'Cofre' },
+    { id: 'c10', type: 'coins', m: 10, w: 6, fill: '#1F83A6', txt: '#FFFFFF' },
+    { id: 'c30', type: 'coins', m: 30, w: 2, fill: '#E3A41A', txt: '#2B1D00' }
+  ];
 
   var ACHIEVEMENTS = [
     { id: 'taps1', name: 'Calentando la mano', desc: 'Tocá la guampa 100 veces', metric: 'taps', target: 100, reward: 250 },
@@ -478,7 +794,16 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     { id: 'rush2', name: 'Rey de la hora pico', desc: 'Jugá 15 horas pico', metric: 'rushes', target: 15, reward: 20000 },
     { id: 'combo1', name: 'Combo x15', desc: 'Llegá a un combo de 15 en la hora pico', metric: 'combo', target: 15, reward: 3000 },
     { id: 'streak1', name: 'Constante', desc: 'Entrá 5 días seguidos', metric: 'streak', target: 5, reward: 5000 },
-    { id: 'ads1', name: 'Buen vecino', desc: 'Mirá 10 anuncios', metric: 'ads', target: 10, reward: 4000 }
+    { id: 'ads1', name: 'Buen vecino', desc: 'Mirá 10 anuncios', metric: 'ads', target: 10, reward: 4000 },
+    { id: 'spin1', name: 'Con suerte', desc: 'Girá la ruleta 10 veces', metric: 'spins', target: 10, reward: 8000 },
+    { id: 'mem1', name: 'Buena memoria', desc: 'Ganá 5 partidas de memoria', metric: 'memWins', target: 5, reward: 15000 },
+    { id: 'ord1', name: 'Mozo estrella', desc: 'Completá 50 pedidos', metric: 'orders', target: 50, reward: 20000 },
+    { id: 'help1', name: 'Equipo completo', desc: 'Contratá a los 4 ayudantes', metric: 'helpers', target: 4, reward: 20000 },
+    { id: 'coll1', name: 'Coleccionista', desc: 'Conseguí 5 objetos distintos', metric: 'collected', target: 5, reward: 8000 },
+    { id: 'coll2', name: 'Gran coleccionista', desc: 'Conseguí 12 objetos distintos', metric: 'collected', target: 12, reward: 60000 },
+    { id: 'coll3', name: 'Álbum completo', desc: 'Conseguí los 16 objetos', metric: 'collected', target: 16, reward: 500000 },
+    { id: 'br1', name: 'Primera sucursal', desc: 'Abrí tu primera sucursal', metric: 'branches', target: 1, reward: 50000 },
+    { id: 'br2', name: 'Cadena de tereré', desc: 'Abrí 3 sucursales', metric: 'branches', target: 3, reward: 500000 }
   ];
 
   var reduce = false;
@@ -492,16 +817,33 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     return e;
   }
   function num(v, d) { return (typeof v === 'number' && isFinite(v)) ? v : d; }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
 
   /* ---------- Estado y guardado ---------- */
   function fresh() {
     return {
-      coins: 0, total: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now(),
-      stats: { taps: 0, bought: 0, rushes: 0, bestCombo: 0, bestScore: 0 },
+      coins: 0, total: 0, runTotal: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now(),
+      stats: { taps: 0, bought: 0, rushes: 0, bestCombo: 0, bestScore: 0, spins: 0, memWins: 0, bestMem: 0, orders: 0, bestOrders: 0, baskets: 0 },
       ach: {}, stage: 0, day: '', streak: 0, streakMax: 0, dailyPending: false,
       missions: { day: '', startTotal: 0, list: [] },
-      rushReadyAt: 0, rushPending: 0, sound: true
+      games: { rush: 0, memoria: 0, pedidos: 0 }, pend: [], sound: true,
+      help: {}, col: {}, pulls: { opened: 0, pity: 0, freeAt: 0, tokens: 0 },
+      wheel: { day: '', freeUsed: false, extra: 0 }, branches: 0
     };
+  }
+  function numMap(src, ids, max) {
+    var out = {};
+    if (src && typeof src === 'object') {
+      ids.forEach(function (id) {
+        var n = src[id];
+        if (typeof n === 'number' && isFinite(n) && n > 0) out[id] = Math.min(max, Math.floor(n));
+      });
+    }
+    return out;
   }
   function load() {
     var s = fresh();
@@ -509,17 +851,15 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       var raw = localStorage.getItem(KEY);
       if (raw) {
         var o = JSON.parse(raw) || {};
-        ['coins', 'total', 'boostUntil', 'chest', 'ads', 'lastSeen', 'stage', 'streak', 'streakMax', 'rushReadyAt', 'rushPending']
+        ['coins', 'total', 'boostUntil', 'chest', 'ads', 'lastSeen', 'stage', 'streak', 'streakMax', 'branches']
           .forEach(function (k) { s[k] = num(o[k], s[k]); });
+        s.runTotal = num(o.runTotal, s.total);
         if (typeof o.day === 'string') s.day = o.day;
         if (typeof o.dailyPending === 'boolean') s.dailyPending = o.dailyPending;
         if (typeof o.sound === 'boolean') s.sound = o.sound;
-        if (o.lv && typeof o.lv === 'object') {
-          UPGRADES.forEach(function (u) {
-            var n = o.lv[u.id];
-            if (typeof n === 'number' && isFinite(n) && n >= 0) s.lv[u.id] = Math.floor(n);
-          });
-        }
+        s.lv = numMap(o.lv, UPGRADES.map(function (u) { return u.id; }), 9999);
+        s.help = numMap(o.help, HELPERS.map(function (h) { return h.id; }), HELPER_MAX);
+        s.col = numMap(o.col, COLLECTION.map(function (c) { return c.id; }), ITEM_MAX);
         if (o.stats && typeof o.stats === 'object') {
           Object.keys(s.stats).forEach(function (k) { s.stats[k] = num(o.stats[k], 0); });
         }
@@ -539,6 +879,25 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
               return { k: m.k, target: m.target, reward: num(m.reward, 300), progress: num(m.progress, 0), claimed: !!m.claimed };
             });
         }
+        if (o.games && typeof o.games === 'object') {
+          ['rush', 'memoria', 'pedidos'].forEach(function (k) { s.games[k] = num(o.games[k], 0); });
+        } else {
+          s.games.rush = num(o.rushReadyAt, 0);
+        }
+        if (Array.isArray(o.pend)) {
+          s.pend = o.pend.filter(function (p) { return p && typeof p.id === 'string' && typeof p.amount === 'number' && p.amount > 0; })
+            .map(function (p) { return { id: p.id, game: String(p.game || 'rush'), title: String(p.title || 'Premio'), text: String(p.text || ''), amount: p.amount }; });
+        } else if (num(o.rushPending, 0) > 0) {
+          s.pend.push({ id: 'old-rush', game: 'rush', title: 'Hora pico terminada', text: 'Este es el premio por tus clientes atendidos.', amount: o.rushPending });
+        }
+        if (o.pulls && typeof o.pulls === 'object') {
+          ['opened', 'pity', 'freeAt', 'tokens'].forEach(function (k) { s.pulls[k] = num(o.pulls[k], 0); });
+        }
+        if (o.wheel && typeof o.wheel === 'object') {
+          s.wheel.day = typeof o.wheel.day === 'string' ? o.wheel.day : '';
+          s.wheel.freeUsed = !!o.wheel.freeUsed;
+          s.wheel.extra = Math.max(0, Math.floor(num(o.wheel.extra, 0)));
+        }
         if (s.stage < 0 || s.stage >= STAGES.length) s.stage = 0;
       }
     } catch (e) {}
@@ -552,6 +911,13 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
   /* ---------- Cuentas del juego ---------- */
   function level(u) { return S.lv[u.id] || 0; }
+  function helperLv(id) { return S.help[id] || 0; }
+  function colBonus(type) {
+    var b = 0;
+    COLLECTION.forEach(function (c) { if (c.type === type) b += c.bonus * (S.col[c.id] || 0); });
+    return b;
+  }
+  function branchMult() { return 1 + BRANCH_BONUS * S.branches; }
   function tapBase() {
     var n = 1;
     UPGRADES.forEach(function (u) { if (u.kind === 'tap') n += level(u) * u.amount; });
@@ -567,14 +933,29 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     UPGRADES.forEach(function (u) { if (u.kind === 'auto') n += level(u); });
     return n;
   }
+  function tapMultiplier() { return (1 + colBonus('g') + 0.12 * helperLv('carlitos')) * branchMult(); }
+  function autoMultiplier() { return (1 + colBonus('y') + 0.12 * helperLv('rosa')) * branchMult(); }
+  function tapValue() { return tapBase() * tapMultiplier(); }
+  function autoValue() { return autoBase() * autoMultiplier(); }
   function mult() { return Date.now() < S.boostUntil ? 2 : 1; }
+  function perSecEst() { return autoValue() + 2 * tapValue(); }
   function cost(u) { return Math.floor(u.base * Math.pow(u.growth, level(u))); }
-  function chestReward() { return Math.max(150, Math.round(autoBase() * 60 + tapBase() * 25)); }
-  function rushUnit() { return Math.max(25, Math.round(tapBase() * 4 + autoBase() * 6)); }
+  function chestSpeed() { return 1 + 0.15 * helperLv('tito'); }
+  function chestReward() { return Math.max(150, Math.round((autoValue() * 60 + tapValue() * 25) * (1 + 0.1 * helperLv('tito')))); }
+  function gameBonus() { return 1 + 0.1 * helperLv('nilda'); }
+  function gameUnit() { return Math.max(20, Math.round((tapValue() * 2 + autoValue() * 2) * gameBonus())); }
+  function offlineCap() { return OFFLINE_CAP + 1800 * helperLv('nilda'); }
   function dailyAmount() {
-    return Math.max(300, Math.round(autoBase() * 90 + tapBase() * 40)) * Math.min(Math.max(S.streak, 1), 7);
+    return Math.max(300, Math.round(autoValue() * 90 + tapValue() * 40)) * Math.min(Math.max(S.streak, 1), 7);
   }
-  function grant(amount) { S.coins += amount; S.total += amount; }
+  function basketCost() { return Math.max(1500, Math.round(perSecEst() * 150)); }
+  function wheelUnit() { return Math.max(200, Math.round(perSecEst() * 30)); }
+  function helperCost(h) { return Math.round(h.base * Math.pow(HELPER_GROWTH, helperLv(h.id))); }
+  function grant(amount) { S.coins += amount; S.total += amount; S.runTotal += amount; }
+  function collected() { return COLLECTION.filter(function (c) { return (S.col[c.id] || 0) > 0; }).length; }
+  function helpersHired() { return HELPERS.filter(function (h) { return helperLv(h.id) > 0; }).length; }
+  function branchNeeded() { return BRANCH_BASE * Math.pow(BRANCH_STEP, S.branches); }
+  function branchCity(n) { return CITIES[n] || ('Sucursal ' + (n + 1)); }
 
   function fmt(n) {
     n = Math.floor(n);
@@ -582,6 +963,18 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     try { return new Intl.NumberFormat('es', { notation: 'compact', maximumFractionDigits: 2 }).format(n); }
     catch (e) { return String(n); }
   }
+  function fmtRate(n) {
+    if (n < 10) return (Math.round(n * 10) / 10).toString().replace('.', ',');
+    return fmt(n);
+  }
+  function fmtShort(n) {
+    n = Math.floor(n);
+    if (n < 10000) return n.toLocaleString('es-PY');
+    if (n < 1e6) return Math.round(n / 1000) + ' mil';
+    if (n < 1e9) return (n / 1e6).toFixed(n < 1e7 ? 1 : 0).replace('.', ',') + ' M';
+    return (n / 1e9).toFixed(1).replace('.', ',') + ' mil M';
+  }
+  function pct(x) { return '+' + Math.round(x * 100) + '%'; }
   function mmss(sec) {
     sec = Math.max(0, Math.ceil(sec));
     return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
@@ -603,20 +996,21 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   function newMissions() {
     var seed = parseInt(String(S.day).replace(/-/g, ''), 10) || 1;
     function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
-    var pool = ['taps', 'earn', 'buy', 'rush', 'ads'];
+    var pool = ['taps', 'earn', 'buy', 'rush', 'ads', 'basket'];
     for (var i = pool.length - 1; i > 0; i--) {
       var j = Math.floor(rnd() * (i + 1));
       var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
     }
-    var reward = Math.max(300, Math.round(autoBase() * 75 + tapBase() * 35));
+    var reward = Math.max(300, Math.round(autoValue() * 75 + tapValue() * 35));
     var tapsTargets = [150, 250, 400];
     var list = pool.slice(0, 3).map(function (k) {
       var target = 3;
       if (k === 'taps') target = tapsTargets[Math.floor(rnd() * 3)];
-      else if (k === 'earn') target = nice(Math.max(1500, autoBase() * 420 + tapBase() * 180));
+      else if (k === 'earn') target = nice(Math.max(1500, autoValue() * 420 + tapValue() * 180));
       else if (k === 'buy') target = 3;
-      else if (k === 'rush') target = 2;
+      else if (k === 'rush') target = 3;
       else if (k === 'ads') target = 2;
+      else if (k === 'basket') target = 1;
       return { k: k, target: target, reward: reward, progress: 0, claimed: false };
     });
     S.missions = { day: S.day, startTotal: S.total, list: list };
@@ -626,7 +1020,8 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       case 'taps': return 'Tocá la guampa ' + fmt(m.target) + ' veces';
       case 'earn': return 'Ganá ₲ ' + fmt(m.target);
       case 'buy': return 'Comprá ' + m.target + ' mejoras';
-      case 'rush': return 'Jugá ' + m.target + ' horas pico';
+      case 'rush': return 'Jugá ' + m.target + ' minijuegos';
+      case 'basket': return 'Abrí ' + m.target + (m.target === 1 ? ' canasta' : ' canastas');
       default: return 'Mirá ' + m.target + ' anuncios';
     }
   }
@@ -639,9 +1034,13 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       if (m.k === kind && !m.claimed) m.progress = Math.min(m.target, m.progress + n);
     });
   }
+  function resetWheelDay(t) {
+    if (S.wheel.day !== t) S.wheel = { day: t, freeUsed: false, extra: 0 };
+  }
   // Devuelve true si empezó un día nuevo.
   function checkDay() {
     var t = today();
+    resetWheelDay(t);
     if (S.day === t) {
       if (S.missions.day !== t || S.missions.list.length === 0) newMissions();
       return false;
@@ -664,6 +1063,12 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       case 'combo': return S.stats.bestCombo;
       case 'ads': return S.ads;
       case 'streak': return S.streakMax;
+      case 'spins': return S.stats.spins;
+      case 'memWins': return S.stats.memWins;
+      case 'orders': return S.stats.orders;
+      case 'helpers': return helpersHired();
+      case 'collected': return collected();
+      case 'branches': return S.branches;
     }
     return 0;
   }
@@ -676,13 +1081,16 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
   /* ---------- Elementos ---------- */
   var coinsEl = $('coins'), perTapEl = $('perTap'), perSecEl = $('perSec'), adsCountEl = $('adsCount');
+  var branchRate = $('branchRate'), branchMultTxt = $('branchMultTxt');
   var boostEl = $('boost'), boostLeftEl = $('boostLeft');
   var chestCard = $('chestCard'), chestText = $('chestText'), chestFill = $('chestFill');
   var chestBtn = $('chestBtn'), chestBtnText = $('chestBtnText'), boostBtn = $('boostBtn');
-  var tapBtn = $('tap'), tapWrap = $('tapWrap'), toastEl = $('toast'), sceneEl = $('scene');
+  var tapBtn = $('tap'), tapWrap = $('tapWrap'), toastEl = $('toast'), sceneEl = $('scene'), bubbleEl = $('bubble');
   var zoneName = $('zoneName'), zoneNext = $('zoneNext'), zoneFill = $('zoneFill');
   var rewardModal = $('rewardModal'), rwTitle = $('rwTitle'), rwText = $('rwText');
   var rwTake = $('rwTake'), rwDouble = $('rwDouble'), rwDoubleText = $('rwDoubleText');
+  var pullModal = $('pullModal'), pullTitle = $('pullTitle'), pullIcon = $('pullIcon'), pullName = $('pullName');
+  var pullTag = $('pullTag'), pullText = $('pullText'), pullOk = $('pullOk');
   var adModal = $('adModal'), adFill = $('adFill'), adCount = $('adCount');
   var adClaim = $('adClaim'), adClose = $('adClose');
   var muteBtn = $('mute');
@@ -719,6 +1127,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       } catch (e) {}
     },
     tap: function () { this.tone(520, 0.05, 'triangle', 0.03); },
+    flip: function () { this.tone(420, 0.06, 'triangle', 0.035); },
     buy: function () { this.tone(523, 0.09, 'sine', 0.05); this.tone(659, 0.09, 'sine', 0.05, 0.08); this.tone(784, 0.14, 'sine', 0.05, 0.16); },
     pop: function (c) { this.tone(600 + Math.min(c, 20) * 25, 0.07, 'square', 0.025); },
     miss: function () { this.tone(180, 0.15, 'sawtooth', 0.03); },
@@ -863,6 +1272,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
   /* ---------- Premios con ventana (cobrar o duplicar viendo un anuncio) ---------- */
   var rewardQueue = [], rewardCurrent = null;
+  var Wheel = { spinning: false, angle: 0, shownUnit: 0, key: '' };
   function pushReward(cfg) {
     if (rewardCurrent && rewardCurrent.key === cfg.key) return;
     for (var i = 0; i < rewardQueue.length; i++) { if (rewardQueue[i].key === cfg.key) return; }
@@ -870,7 +1280,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     showNextReward();
   }
   function showNextReward() {
-    if (rewardCurrent || adBusy) return;
+    if (rewardCurrent || adBusy || Wheel.spinning || !pullModal.hidden) return;
     var c = rewardQueue.shift();
     if (!c) return;
     rewardCurrent = c;
@@ -888,6 +1298,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (c && c.onDone) c.onDone();
     save();
     render();
+    metasSigKey = '';
     renderMetas();
     showNextReward();
   }
@@ -909,6 +1320,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     });
   });
 
+  function addPend(game, title, text, amount) {
+    S.pend.push({ id: String(Date.now()) + String(Math.floor(Math.random() * 1000)), game: game, title: title, text: text, amount: amount });
+    save();
+  }
+  function pendFor(game) { return S.pend.some(function (p) { return p.game === game; }); }
+  function queuePending() {
+    S.pend.slice().forEach(function (p) {
+      pushReward({
+        key: 'p' + p.id, title: p.title, text: p.text, amount: p.amount,
+        onDone: function () { S.pend = S.pend.filter(function (x) { return x.id !== p.id; }); }
+      });
+    });
+  }
   function queueDaily() {
     if (!S.dailyPending) return;
     pushReward({
@@ -919,21 +1343,11 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       onDone: function () { S.dailyPending = false; }
     });
   }
-  function queueRushPending() {
-    if (S.rushPending <= 0) return;
-    pushReward({
-      key: 'rush',
-      title: 'Hora pico terminada',
-      text: 'Este es el premio por tus clientes atendidos.',
-      amount: S.rushPending,
-      onDone: function () { S.rushPending = 0; }
-    });
-  }
   function checkOffline() {
     var away = (Date.now() - S.lastSeen) / 1000;
-    var cps = autoBase();
+    var cps = autoValue();
     if (away < 60 || cps <= 0) return;
-    var amt = Math.floor(cps * Math.min(away, OFFLINE_CAP));
+    var amt = Math.floor(cps * Math.min(away, offlineCap()));
     if (amt < 50) return;
     S.lastSeen = Date.now();
     pushReward({
@@ -942,6 +1356,60 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       text: 'Tus negocios trabajaron ' + awayText(away) + ' y juntaron ₲ ' + fmt(amt) + '.',
       amount: amt
     });
+  }
+
+  /* ---------- Dibujos: personas, guampas y yuyos ---------- */
+  function personInner(h) {
+    var c = h.col, s = '';
+    s += '<path d="M10 60 Q10 38 30 38 Q50 38 50 60 Z" fill="' + c.shirt + '"/>';
+    if (h.id === 'rosa') s += '<path d="M20 60 L22 42 L38 42 L40 60 Z" fill="#F4F1E8"/>';
+    s += '<circle cx="30" cy="24" r="12" fill="' + c.skin + '"/>';
+    if (h.id === 'rosa') s += '<path d="M17 22 Q30 6 43 22 Q30 15 17 22 Z" fill="#D9503F"/><circle cx="43" cy="22" r="3" fill="#D9503F"/>';
+    if (h.id === 'carlitos') s += '<path d="M17 21 Q30 6 43 21 Z" fill="#3F7FD9"/><rect x="28" y="19" width="19" height="4" rx="2" fill="#2D5FA8"/>';
+    if (h.id === 'tito') s += '<path d="M19 18 L21 5 L39 5 L41 18 Z" fill="#F4F1E8"/>';
+    if (h.id === 'nilda') s += '<path d="M17 22 Q30 7 43 22 Q30 16 17 22 Z" fill="#6B6B73"/><circle cx="30" cy="10" r="5" fill="#6B6B73"/>';
+    s += '<circle cx="25.5" cy="26" r="1.8" fill="#2B1D12"/><circle cx="34.5" cy="26" r="1.8" fill="#2B1D12"/>';
+    s += '<path d="M25 31 Q30 35 35 31" stroke="#2B1D12" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+    if (h.id === 'nilda') s += '<circle cx="25.5" cy="26" r="4" fill="none" stroke="#2B1D12" stroke-width="1.2"/><circle cx="34.5" cy="26" r="4" fill="none" stroke="#2B1D12" stroke-width="1.2"/><path d="M29.5 26 H30.5" stroke="#2B1D12" stroke-width="1.2"/>';
+    return s;
+  }
+  function personSVG(h) { return '<svg viewBox="0 0 60 60" aria-hidden="true">' + personInner(h) + '</svg>'; }
+
+  function guampaSVG(it) {
+    var s = '<svg viewBox="0 0 60 60" aria-hidden="true">';
+    s += '<path d="M31 6 L25 36" stroke="#8A9299" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="31.5" cy="5.5" rx="3.4" ry="1.6" fill="#C9CED2" transform="rotate(18 31.5 5.5)"/>';
+    s += '<path d="M12 22 H48 L44 52 Q43 57 38 57 H22 Q17 57 16 52 Z" fill="' + it.c1 + '"/>';
+    s += '<ellipse cx="30" cy="22" rx="18" ry="4.2" fill="' + it.c2 + '"/><ellipse cx="30" cy="22" rx="14.5" ry="2.6" fill="#2F7A3B"/>';
+    if (it.deco === 'bands') s += '<rect x="14.2" y="32" width="31.6" height="3.4" fill="' + it.c2 + '"/><rect x="15" y="44" width="30" height="3.4" fill="' + it.c2 + '"/>';
+    if (it.deco === 'lines') s += '<path d="M22 27 L23 54 M30 27 V56 M38 27 L37 54" stroke="' + it.c2 + '" stroke-width="2.2"/>';
+    if (it.deco === 'dots') { for (var r = 0; r < 3; r++) for (var q = 0; q < 4; q++) s += '<circle cx="' + (19.5 + q * 7) + '" cy="' + (33 + r * 7.5) + '" r="1.8" fill="' + it.c2 + '" opacity="0.8"/>'; }
+    if (it.deco === 'stripes') s += '<path d="M12 22 H48 L47 28 H13 Z M16 52 L15 34 H25 L24 57 H22 Q17 57 16 52 Z M33 34 H43 L44 52 Q43 57 38 57 H34 Z" fill="' + it.c2 + '" opacity="0.95"/>';
+    if (it.deco === 'lace') { for (var k = 0; k < 5; k++) s += '<circle cx="' + (18 + k * 6) + '" cy="40" r="2.6" fill="none" stroke="' + it.c2 + '" stroke-width="1.4"/><circle cx="' + (21 + k * 6) + '" cy="47" r="2.6" fill="none" stroke="' + it.c2 + '" stroke-width="1.4"/>'; }
+    if (it.deco === 'shine') s += '<path d="M19 28 L21 52" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" opacity="0.65"/><path d="M26 30 L27 44" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>';
+    return s + '</svg>';
+  }
+  function yuyoSVG(it) {
+    var c1 = it.c1, c2 = it.c2;
+    function ell(cx, cy, rx, ry, rot) { return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" transform="rotate(' + rot + ' ' + cx + ' ' + cy + ')" fill="' + c1 + '"/>'; }
+    var s = '<svg viewBox="0 0 60 60" aria-hidden="true">';
+    s += '<path d="M30 57 C30 44 30 34 30 20" stroke="' + (it.leaf === 'flower' ? '#3F8F4A' : c2) + '" stroke-width="3" stroke-linecap="round" fill="none"/>';
+    if (it.leaf === 'round') s += ell(20, 38, 9, 7, -30) + ell(40, 38, 9, 7, 30) + ell(22, 26, 8, 6, -35) + ell(38, 26, 8, 6, 35) + ell(30, 14, 7, 9, 0);
+    else if (it.leaf === 'long') s += ell(19, 40, 12, 4.5, -35) + ell(41, 40, 12, 4.5, 35) + ell(20, 29, 11, 4, -40) + ell(40, 29, 11, 4, 40) + ell(30, 13, 4.5, 11, 0);
+    else if (it.leaf === 'bush') { for (var i = 0; i < 9; i++) s += '<circle cx="' + (30 + Math.cos(i * 1.4) * (6 + (i % 3) * 5)) + '" cy="' + (16 + i * 4.2) + '" r="' + (5 + (i % 2)) + '" fill="' + c1 + '"/>'; }
+    else if (it.leaf === 'serr') s += '<path d="M30 8 L38 18 L32 20 L40 30 L32 32 L38 42 L30 40 L22 42 L28 32 L20 30 L28 20 L22 18 Z" fill="' + c1 + '"/>';
+    else { // flower
+      s += ell(20, 42, 10, 4.5, -30) + ell(40, 42, 10, 4.5, 30) + ell(21, 31, 9, 4, -35) + ell(39, 31, 9, 4, 35);
+      for (var p = 0; p < 5; p++) { var a = p * 1.2566; s += '<circle cx="' + (30 + Math.cos(a) * 7) + '" cy="' + (14 + Math.sin(a) * 7) + '" r="5" fill="' + c2 + '"/>'; }
+      s += '<circle cx="30" cy="14" r="3.5" fill="#E3A41A"/>';
+    }
+    return s + '</svg>';
+  }
+  function itemSVG(it) { return it.type === 'g' ? guampaSVG(it) : yuyoSVG(it); }
+  function faceSVG(vip) {
+    return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + (vip ? '#F3C64A' : '#E9C29B') + '"/>' +
+      (vip ? '<path d="M12 20 L18 6 L30 16 L42 6 L48 20 Z" fill="#C98A0E"/>' : '<path d="M8 26 Q30 -2 52 26 Z" fill="#5A3E2B"/>') +
+      '<circle cx="22" cy="33" r="3" fill="#2B1D12"/><circle cx="38" cy="33" r="3" fill="#2B1D12"/>' +
+      '<path d="M21 43 Q30 51 39 43" stroke="#2B1D12" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
   }
 
   /* ---------- Escena del puesto ---------- */
@@ -970,6 +1438,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     s += '<path d="M168 62 L168 46 L184 46 L180 62 Z M200 62 L200 46 L216 46 L212 62 Z M232 62 L232 46 L240 46 L240 62 Z" fill="#F4F1E8"/>';
     s += '<rect x="170" y="68" width="60" height="14" rx="2" fill="#6B4727"/>';
     s += '<text x="200" y="79" text-anchor="middle" font-size="10" fill="#F4E3C4" style="font-family:var(--font-display)">TERERÉ</text>';
+    HELPERS.forEach(function (h) {
+      if (helperLv(h.id) > 0) s += '<g transform="translate(' + h.sx + ' 50) scale(0.78)">' + personInner(h) + '</g>';
+    });
     for (var c = 0; c < custCount; c++) {
       var col = CUST_COLORS[c % CUST_COLORS.length];
       var dur = 11 + ((c * 5) % 9);
@@ -982,14 +1453,15 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   }
   function renderScene() {
     var n = Math.min(9, 1 + autoLevels());
-    var key = S.stage + ':' + n;
+    var flags = HELPERS.map(function (h) { return helperLv(h.id) > 0 ? 1 : 0; }).join('');
+    var key = S.stage + ':' + n + ':' + flags;
     if (key === sceneKey) return;
     sceneKey = key;
     sceneEl.innerHTML = sceneSVG(S.stage, n);
   }
   function checkStage() {
     var idx = 0;
-    for (var i = 0; i < STAGES.length; i++) { if (S.total >= STAGES[i].at) idx = i; }
+    for (var i = 0; i < STAGES.length; i++) { if (S.runTotal >= STAGES[i].at) idx = i; }
     if (idx > S.stage) {
       S.stage = idx;
       toast('Nueva zona: ' + STAGES[idx].name);
@@ -997,6 +1469,20 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       save();
     }
   }
+  var bubbleTimer = 0;
+  function sayQuote() {
+    var hired = HELPERS.filter(function (h) { return helperLv(h.id) > 0; });
+    if (!hired.length || currentView !== 'puesto' || document.hidden) return;
+    var h = hired[Math.floor(Math.random() * hired.length)];
+    bubbleEl.innerHTML = '';
+    var b = el('b', null, h.name + ': ');
+    bubbleEl.appendChild(b);
+    bubbleEl.appendChild(document.createTextNode(h.quote));
+    bubbleEl.hidden = false;
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(function () { bubbleEl.hidden = true; }, 3600);
+  }
+  setInterval(sayQuote, 11000);
 
   /* ---------- Mejoras ---------- */
   var upRefs = {};
@@ -1035,17 +1521,84 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     render();
   }
 
+  /* ---------- Equipo ---------- */
+  var hRefs = {};
+  function buildHelpers() {
+    var host = $('helperList');
+    HELPERS.forEach(function (h) {
+      var card = el('div', 'hcard off');
+      var head = el('div', 'hhead');
+      var av = el('div', 'avatar');
+      av.innerHTML = personSVG(h);
+      var info = el('div');
+      var h3 = el('h3');
+      h3.appendChild(el('span', null, h.name));
+      h3.appendChild(el('small', null, h.role));
+      info.appendChild(h3);
+      info.appendChild(el('p', 'quote', '“' + h.quote + '”'));
+      head.appendChild(av);
+      head.appendChild(info);
+      var eff = el('p', 'heff');
+      var now = el('span'), nxt = el('span');
+      eff.appendChild(now);
+      eff.appendChild(nxt);
+      var btn = el('button', 'btn btn-buy hbuy');
+      btn.type = 'button';
+      var left = el('span'), right = el('span');
+      btn.appendChild(left);
+      btn.appendChild(right);
+      btn.addEventListener('click', function () { buyHelper(h); });
+      card.appendChild(head);
+      card.appendChild(eff);
+      card.appendChild(btn);
+      host.appendChild(card);
+      hRefs[h.id] = { card: card, now: now, nxt: nxt, btn: btn, left: left, right: right, h3: h3 };
+    });
+  }
+  function buyHelper(h) {
+    var l = helperLv(h.id);
+    if (l >= HELPER_MAX) return;
+    var c = helperCost(h);
+    if (S.coins < c) return;
+    S.coins -= c;
+    S.help[h.id] = l + 1;
+    Snd.buy();
+    toast(l === 0 ? h.name + ' se sumó al equipo' : h.name + ' subió a nivel ' + (l + 1));
+    sceneKey = '';
+    save();
+    render();
+  }
+  function renderHelpers() {
+    HELPERS.forEach(function (h) {
+      var r = hRefs[h.id], l = helperLv(h.id);
+      r.card.classList.toggle('off', l === 0);
+      r.now.textContent = l ? 'Nivel ' + l + ' de ' + HELPER_MAX + ': ' + h.eff(l) : 'Sin contratar';
+      r.nxt.textContent = l >= HELPER_MAX ? 'Nivel máximo' : (l ? 'Siguiente nivel: ' : 'Al contratar: ') + (l >= HELPER_MAX ? '' : h.eff(l + 1));
+      if (l >= HELPER_MAX) {
+        r.btn.disabled = true; r.left.textContent = 'Máximo'; r.right.textContent = '';
+      } else {
+        var c = helperCost(h);
+        r.btn.disabled = S.coins < c;
+        r.left.textContent = l ? 'Subir de nivel' : 'Contratar';
+        r.right.textContent = '₲ ' + fmt(c);
+      }
+    });
+  }
+
   /* ---------- Pantalla principal ---------- */
-  var badgePuesto = $('badgePuesto'), badgeRush = $('badgeRush'), badgeMetas = $('badgeMetas');
+  var badgePuesto = $('badgePuesto'), badgeEquipo = $('badgeEquipo'), badgeJuegos = $('badgeJuegos');
+  var badgeColeccion = $('badgeColeccion'), badgeMetas = $('badgeMetas');
   function setBadge(node, n) {
     if (n > 0) { node.hidden = false; node.textContent = n > 9 ? '9+' : String(n); }
     else { node.hidden = true; }
   }
   function render() {
     coinsEl.textContent = fmt(S.coins);
-    perTapEl.textContent = '₲ ' + fmt(tapBase() * mult());
-    perSecEl.textContent = '₲ ' + fmt(autoBase() * mult());
+    perTapEl.textContent = '₲ ' + fmtRate(tapValue() * mult());
+    perSecEl.textContent = '₲ ' + fmtRate(autoValue() * mult());
     adsCountEl.textContent = S.ads;
+    if (S.branches > 0) { branchRate.hidden = false; branchMultTxt.textContent = 'x' + String(branchMult()).replace('.', ','); }
+    else { branchRate.hidden = true; }
 
     var left = S.boostUntil - Date.now();
     if (left > 0) { boostEl.hidden = false; boostLeftEl.textContent = mmss(left / 1000); }
@@ -1054,7 +1607,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     var ready = S.chest >= CHEST_SECONDS;
     chestFill.style.width = Math.min(100, S.chest / CHEST_SECONDS * 100) + '%';
     chestCard.classList.toggle('ready', ready);
-    chestText.textContent = ready ? 'Listo para abrir' : 'Se abre en ' + mmss(CHEST_SECONDS - S.chest);
+    chestText.textContent = ready ? 'Listo para abrir' : 'Se abre en ' + mmss((CHEST_SECONDS - S.chest) / chestSpeed());
     chestBtn.disabled = !ready || adBusy;
     chestBtnText.textContent = ready ? 'Abrir +₲ ' + fmt(chestReward()) : 'Esperá';
     boostBtn.disabled = adBusy;
@@ -1069,18 +1622,24 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     var st = STAGES[S.stage], nx = STAGES[S.stage + 1];
     zoneName.textContent = st.name;
     if (nx) {
-      zoneNext.textContent = 'Próxima zona: ' + nx.name + ' (₲ ' + fmt(S.total) + ' / ' + fmt(nx.at) + ')';
-      zoneFill.style.width = Math.min(100, Math.max(0, (S.total - st.at) / (nx.at - st.at) * 100)) + '%';
+      zoneNext.textContent = 'Próxima zona: ' + nx.name + ' (₲ ' + fmt(S.runTotal) + ' / ' + fmt(nx.at) + ')';
+      zoneFill.style.width = Math.min(100, Math.max(0, (S.runTotal - st.at) / (nx.at - st.at) * 100)) + '%';
     } else {
       zoneNext.textContent = 'Llegaste a la última zona';
       zoneFill.style.width = '100%';
     }
     renderScene();
-    renderRushState();
+    renderHelpers();
+    renderCollectionState();
+    renderGames();
+    renderBranch();
 
     setBadge(badgePuesto, ready ? 1 : 0);
-    setBadge(badgeRush, (!R.on && Date.now() >= S.rushReadyAt && S.rushPending <= 0) ? 1 : 0);
-    setBadge(badgeMetas, claimableCount());
+    var canHire = HELPERS.filter(function (h) { return helperLv(h.id) === 0 && S.coins >= helperCost(h); }).length;
+    setBadge(badgeEquipo, canHire);
+    setBadge(badgeJuegos, gamesAvailable());
+    setBadge(badgeColeccion, (S.pulls.tokens > 0 || Date.now() >= S.pulls.freeAt) ? 1 : 0);
+    setBadge(badgeMetas, claimableCount() + (canBranch() ? 1 : 0));
   }
 
   /* ---------- Toques ---------- */
@@ -1094,14 +1653,14 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     setTimeout(function () { if (el2.parentNode) el2.parentNode.removeChild(el2); }, 900);
   }
   function tap(x, y) {
-    var g = tapBase() * mult();
+    var g = tapValue() * mult();
     grant(g);
     S.stats.taps += 1;
     bump('taps', 1);
     Snd.tap();
     if (!reduce) {
       var rect = tapWrap.getBoundingClientRect();
-      spawnFloat(tapWrap, fmt(g), Math.max(16, Math.min(rect.width - 16, x - rect.left)), Math.max(16, Math.min(rect.height - 16, y - rect.top)));
+      spawnFloat(tapWrap, fmtRate(g), Math.max(16, Math.min(rect.width - 16, x - rect.left)), Math.max(16, Math.min(rect.height - 16, y - rect.top)));
     }
     render();
   }
@@ -1133,9 +1692,54 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     });
   });
 
-  /* ---------- Hora pico (minijuego) ---------- */
-  var rushIntro = $('rushIntro'), rushPlay = $('rushPlay'), rushInfo = $('rushInfo');
-  var rushStart = $('rushStart'), rushStartText = $('rushStartText'), rushSkip = $('rushSkip');
+  /* ---------- Minijuegos: piezas comunes ---------- */
+  var activeGame = null;
+  var GAME = {
+    rush: { cd: RUSH_CD, name: 'Hora pico' },
+    memoria: { cd: MEM_CD, name: 'Memoria de yuyos' },
+    pedidos: { cd: ORD_CD, name: 'Pedidos' }
+  };
+  var GREFS = {
+    rush: { info: $('rushInfo'), start: $('rushStart'), startText: $('rushStartText'), skip: $('rushSkip'), intro: $('rushIntro'), play: $('rushPlay') },
+    memoria: { info: $('memInfo'), start: $('memStart'), startText: $('memStartText'), skip: $('memSkip'), intro: $('memIntro'), play: $('memPlay') },
+    pedidos: { info: $('ordInfo'), start: $('ordStart'), startText: $('ordStartText'), skip: $('ordSkip'), intro: $('ordIntro'), play: $('ordPlay') }
+  };
+  function gameCooldown(k) { return Math.max(0, (S.games[k] - Date.now()) / 1000); }
+  function gameReady(k) { return gameCooldown(k) <= 0 && !pendFor(k); }
+  function gameInfoText(k) {
+    var u = 'Cada punto vale ₲ ' + fmt(gameUnit()) + '. ';
+    if (k === 'rush') return u + 'Mejor puntaje: ' + S.stats.bestScore + '.';
+    if (k === 'memoria') return u + 'Mejor partida: ' + S.stats.bestMem + ' puntos.';
+    return u + 'Mejor puntaje: ' + S.stats.bestOrders + '.';
+  }
+  function renderGameIntro(k) {
+    if (activeGame === k) return;
+    var d = GREFS[k], cd = gameCooldown(k);
+    d.info.textContent = gameInfoText(k);
+    d.start.disabled = cd > 0 || pendFor(k) || adBusy;
+    d.startText.textContent = cd > 0 ? 'Disponible en ' + mmss(cd) : 'Empezar';
+    d.skip.hidden = !(cd > 0);
+    d.skip.disabled = adBusy;
+  }
+  function gamesAvailable() {
+    var n = 0;
+    ['rush', 'memoria', 'pedidos'].forEach(function (k) { if (gameReady(k) && activeGame !== k) n++; });
+    if (!S.wheel.freeUsed) n++;
+    return n;
+  }
+  function finishGame(k, score, text) {
+    S.games[k] = Date.now() + GAME[k].cd;
+    bump('rush', 1);
+    var payout = Math.round(gameUnit() * score);
+    if (payout > 0) addPend(k, GAME[k].name + ' terminada', text, payout);
+    else toast('Esta vez no hubo premio. Probá de nuevo.');
+    save();
+    render();
+    queuePending();
+  }
+  function lockToast() { toast('Terminá el minijuego antes de cambiar de pantalla.'); }
+
+  /* ---------- Hora pico ---------- */
   var rushScoreEl = $('rushScore'), rushComboEl = $('rushCombo'), rushTimeEl = $('rushTime'), rushBar = $('rushBar');
   var cells = [];
   var R = { on: false, t0: 0, score: 0, combo: 0, max: 0, served: 0, active: 0, spawnT: 0, tickT: 0 };
@@ -1148,34 +1752,19 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       cells.push({ el: d, busy: false, leave: null });
     }
   }
-  function faceSVG(vip) {
-    return '<svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="26" fill="' + (vip ? '#F3C64A' : '#E9C29B') + '"/>' +
-      (vip ? '<path d="M12 20 L18 6 L30 16 L42 6 L48 20 Z" fill="#C98A0E"/>' : '<path d="M8 26 Q30 -2 52 26 Z" fill="#5A3E2B"/>') +
-      '<circle cx="22" cy="33" r="3" fill="#2B1D12"/><circle cx="38" cy="33" r="3" fill="#2B1D12"/>' +
-      '<path d="M21 43 Q30 51 39 43" stroke="#2B1D12" stroke-width="3" fill="none" stroke-linecap="round"/></svg>';
-  }
-  function updateHud() {
+  function updateRushHud() {
     rushScoreEl.textContent = R.score + ' pts';
     rushComboEl.textContent = 'Combo x' + R.combo;
   }
-  function rushCooldown() { return Math.max(0, (S.rushReadyAt - Date.now()) / 1000); }
-  function renderRushState() {
-    if (R.on) return;
-    var cd = rushCooldown();
-    rushInfo.textContent = 'Cada punto vale ₲ ' + fmt(rushUnit()) + '. Mejor puntaje: ' + S.stats.bestScore + '.';
-    rushStart.disabled = cd > 0 || S.rushPending > 0 || adBusy;
-    rushStartText.textContent = cd > 0 ? 'Disponible en ' + mmss(cd) : 'Empezar';
-    rushSkip.hidden = !(cd > 0);
-    rushSkip.disabled = adBusy;
-  }
   function startRush() {
-    if (R.on || S.rushPending > 0 || Date.now() < S.rushReadyAt) return;
+    if (activeGame || !gameReady('rush')) return;
+    activeGame = 'rush';
     R.on = true; R.t0 = performance.now(); R.score = 0; R.combo = 0; R.max = 0; R.served = 0; R.active = 0;
-    rushIntro.hidden = true;
-    rushPlay.hidden = false;
+    GREFS.rush.intro.hidden = true;
+    GREFS.rush.play.hidden = false;
     rushBar.style.width = '100%';
     rushTimeEl.textContent = Math.round(RUSH_MS / 1000) + ' s';
-    updateHud();
+    updateRushHud();
     R.tickT = setInterval(rushTick, 100);
     scheduleSpawn(250);
   }
@@ -1216,7 +1805,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       cell.busy = false;
       cell.leave = null;
       R.active = Math.max(0, R.active - 1);
-      if (missed && R.on) { R.combo = 0; updateHud(); Snd.miss(); }
+      if (missed && R.on) { R.combo = 0; updateRushHud(); Snd.miss(); }
     }
     timer = setTimeout(function () { leave(true); }, life);
     b.addEventListener('pointerdown', function (e) {
@@ -1224,12 +1813,12 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       if (done || !R.on) return;
       R.combo += 1;
       if (R.combo > R.max) R.max = R.combo;
-      var pts = (vip ? 5 : 1) + Math.floor(R.combo / 5);
+      var pts = (vip ? 5 : 1) + Math.min(4, Math.floor(R.combo / 5));
       R.score += pts;
       R.served += 1;
       Snd.pop(R.combo);
       if (!reduce) spawnFloat(cell.el, String(pts), cell.el.clientWidth / 2, cell.el.clientHeight / 3);
-      updateHud();
+      updateRushHud();
       leave(false);
     });
     cell.leave = leave;
@@ -1242,38 +1831,491 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     clearTimeout(R.spawnT);
     cells.forEach(function (c) { if (c.leave) c.leave(false); });
     R.active = 0;
-    rushPlay.hidden = true;
-    rushIntro.hidden = false;
+    GREFS.rush.play.hidden = true;
+    GREFS.rush.intro.hidden = false;
+    activeGame = null;
     S.stats.rushes += 1;
     S.stats.bestCombo = Math.max(S.stats.bestCombo, R.max);
     S.stats.bestScore = Math.max(S.stats.bestScore, R.score);
-    bump('rush', 1);
-    S.rushReadyAt = Date.now() + RUSH_COOLDOWN_MS;
-    var payout = rushUnit() * R.score;
-    if (payout > 0) {
-      S.rushPending = payout;
-      save();
-      pushReward({
-        key: 'rush',
-        title: 'Hora pico terminada',
-        text: 'Atendiste ' + R.served + (R.served === 1 ? ' cliente' : ' clientes') + ' con un combo máximo de x' + R.max + ' (' + R.score + ' puntos).',
-        amount: payout,
-        onDone: function () { S.rushPending = 0; }
-      });
+    finishGame('rush', R.score, 'Atendiste ' + R.served + (R.served === 1 ? ' cliente' : ' clientes') + ' con un combo máximo de x' + R.max + ' (' + R.score + ' puntos).');
+  }
+  GREFS.rush.start.addEventListener('click', startRush);
+  GREFS.rush.skip.addEventListener('click', function () {
+    watch('hora-pico', function () { S.games.rush = 0; startRush(); });
+  });
+
+  /* ---------- Ruleta ---------- */
+  var wheelEl = $('wheel'), wheelInfo = $('wheelInfo');
+  var wheelFree = $('wheelFree'), wheelFreeText = $('wheelFreeText'), wheelAd = $('wheelAd'), wheelAdText = $('wheelAdText');
+
+  function wheelLabel(seg, unit) {
+    return seg.type === 'coins' ? '₲ ' + fmtShort(unit * seg.m) : seg.label;
+  }
+  function wheelSVG(unit) {
+    var n = WHEEL.length, step = 360 / n, s = '<svg viewBox="0 0 200 200" aria-hidden="true">';
+    function pt(deg, r) { var a = deg * Math.PI / 180; return [(100 + r * Math.sin(a)).toFixed(2), (100 - r * Math.cos(a)).toFixed(2)]; }
+    WHEEL.forEach(function (seg, i) {
+      var p0 = pt(i * step, 98), p1 = pt((i + 1) * step, 98);
+      s += '<path d="M100 100 L' + p0[0] + ' ' + p0[1] + ' A98 98 0 0 1 ' + p1[0] + ' ' + p1[1] + ' Z" fill="' + seg.fill + '" stroke="#FFFFFF" stroke-width="1.5"/>';
+      var mid = (i + 0.5) * step;
+      s += '<text x="100" y="31" text-anchor="middle" font-size="11" font-weight="700" fill="' + seg.txt + '" transform="rotate(' + mid + ' 100 100)" style="font-family:var(--font-body)">' + wheelLabel(seg, unit) + '</text>';
+    });
+    s += '<circle cx="100" cy="100" r="12" fill="#FFFFFF"/><circle cx="100" cy="100" r="5" fill="#13261A"/></svg>';
+    return s;
+  }
+  function renderWheel() {
+    if (Wheel.spinning) return;
+    var unit = wheelUnit();
+    var key = fmtShort(unit);
+    if (key === Wheel.key) return;
+    Wheel.key = key;
+    Wheel.shownUnit = unit;
+    wheelEl.innerHTML = wheelSVG(unit);
+  }
+  function renderWheelButtons() {
+    var extraLeft = WHEEL_EXTRA_MAX - S.wheel.extra;
+    wheelFree.disabled = S.wheel.freeUsed || Wheel.spinning || adBusy;
+    wheelFreeText.textContent = S.wheel.freeUsed ? 'Ya usaste tu giro gratis de hoy' : 'Girar gratis';
+    if (!S.wheel.freeUsed) {
+      wheelAd.hidden = true;
+      wheelInfo.textContent = 'Tu giro gratis de hoy te espera.';
+    } else if (extraLeft > 0) {
+      wheelAd.hidden = false;
+      wheelAd.disabled = Wheel.spinning || adBusy;
+      wheelAdText.textContent = 'Girar viendo un anuncio (' + extraLeft + (extraLeft === 1 ? ' disponible hoy' : ' disponibles hoy') + ')';
+      wheelInfo.textContent = 'Ya usaste el giro gratis. Podés girar más viendo anuncios.';
     } else {
-      save();
-      toast('Nadie fue atendido esta vez. Probá de nuevo.');
+      wheelAd.hidden = true;
+      wheelInfo.textContent = 'Hoy ya usaste todos tus giros. Volvé mañana.';
     }
+  }
+  function pickWheel() {
+    var total = 0;
+    WHEEL.forEach(function (w) { total += w.w; });
+    var r = Math.random() * total;
+    for (var i = 0; i < WHEEL.length; i++) { r -= WHEEL[i].w; if (r < 0) return i; }
+    return 0;
+  }
+  function spin() {
+    if (Wheel.spinning) return;
+    var idx = pickWheel(), seg = WHEEL[idx], unit = Wheel.shownUnit || wheelUnit();
+    var msg = null;
+    S.stats.spins += 1;
+    bump('rush', 1);
+    if (seg.type === 'coins') {
+      addPend('ruleta', 'Ruleta de la suerte', 'Te tocó ₲ ' + fmt(unit * seg.m) + '.', unit * seg.m);
+    } else if (seg.type === 'boost') {
+      var now = Date.now();
+      S.boostUntil = Math.min(Math.max(now, S.boostUntil) + 180000, now + BOOST_MAX_MS);
+      msg = 'Ganaste ganancias x2 por 3 minutos';
+    } else if (seg.type === 'basket') {
+      S.pulls.tokens += 1;
+      msg = 'Ganaste una canasta gratis. Abrila en Colección.';
+    } else {
+      S.chest = CHEST_SECONDS;
+      msg = 'El cofre sorpresa está listo para abrir';
+    }
+    save();
+    Wheel.spinning = true;
+    renderWheelButtons();
+    var step = 360 / WHEEL.length;
+    var jitter = (Math.random() - 0.5) * step * 0.6;
+    var target = ((360 - (idx * step + step / 2 + jitter)) % 360 + 360) % 360;
+    var cur = ((Wheel.angle % 360) + 360) % 360;
+    var delta = ((target - cur) % 360 + 360) % 360;
+    Wheel.angle += 360 * 5 + delta;
+    var dur = reduce ? 600 : 4200;
+    wheelEl.style.transitionDuration = dur + 'ms';
+    wheelEl.style.transform = 'rotate(' + Wheel.angle + 'deg)';
+    setTimeout(function () {
+      Wheel.spinning = false;
+      Snd.win();
+      if (msg) toast(msg);
+      renderWheel();
+      renderWheelButtons();
+      render();
+      queuePending();
+    }, dur + 150);
+  }
+  wheelFree.addEventListener('click', function () {
+    if (S.wheel.freeUsed || Wheel.spinning) return;
+    S.wheel.freeUsed = true;
+    spin();
+  });
+  wheelAd.addEventListener('click', function () {
+    if (!S.wheel.freeUsed || S.wheel.extra >= WHEEL_EXTRA_MAX || Wheel.spinning) return;
+    watch('ruleta', function () { S.wheel.extra += 1; spin(); });
+  });
+
+  /* ---------- Memoria de yuyos ---------- */
+  var memPairsEl = $('memPairs'), memTimeEl = $('memTime'), memBar = $('memBar'), memGrid = $('memGrid');
+  var M = { on: false, t0: 0, first: null, lock: false, pairs: 0, moves: 0, tick: 0, cards: [] };
+
+  function startMemoria() {
+    if (activeGame || !gameReady('memoria')) return;
+    activeGame = 'memoria';
+    M.on = true; M.t0 = performance.now(); M.first = null; M.lock = false; M.pairs = 0; M.moves = 0; M.cards = [];
+    var ids = shuffle(YUYOS).slice(0, 6);
+    var deck = shuffle(ids.concat(ids));
+    memGrid.innerHTML = '';
+    deck.forEach(function (it) {
+      var b = el('button', 'mcard');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Carta oculta');
+      b.innerHTML = '<span class="inner"><span class="face back"></span><span class="face front">' + yuyoSVG(it) + '</span></span>';
+      var card = { el: b, it: it, up: false, done: false };
+      b.addEventListener('click', function () { flipCard(card); });
+      memGrid.appendChild(b);
+      M.cards.push(card);
+    });
+    GREFS.memoria.intro.hidden = true;
+    GREFS.memoria.play.hidden = false;
+    memBar.style.width = '100%';
+    memTimeEl.textContent = Math.round(MEM_MS / 1000) + ' s';
+    memPairsEl.textContent = '0 / 6 parejas';
+    M.tick = setInterval(memTick, 100);
+  }
+  function memTick() {
+    var p = (performance.now() - M.t0) / MEM_MS;
+    if (p >= 1) { endMemoria(false); return; }
+    memBar.style.width = ((1 - p) * 100) + '%';
+    memTimeEl.textContent = Math.ceil(MEM_MS / 1000 * (1 - p)) + ' s';
+  }
+  function setCardUp(card, up) {
+    card.up = up;
+    card.el.classList.toggle('up', up);
+    card.el.setAttribute('aria-label', up ? card.it.name : 'Carta oculta');
+  }
+  function flipCard(card) {
+    if (!M.on || M.lock || card.up || card.done) return;
+    Snd.flip();
+    setCardUp(card, true);
+    if (!M.first) { M.first = card; return; }
+    var a = M.first, b = card;
+    M.first = null;
+    M.moves += 1;
+    if (a.it.id === b.it.id) {
+      a.done = b.done = true;
+      a.el.classList.add('done'); b.el.classList.add('done');
+      M.pairs += 1;
+      Snd.pop(M.pairs * 3);
+      memPairsEl.textContent = M.pairs + ' / 6 parejas';
+      if (M.pairs === 6) endMemoria(true);
+    } else {
+      M.lock = true;
+      setTimeout(function () {
+        setCardUp(a, false); setCardUp(b, false);
+        M.lock = false;
+      }, 650);
+    }
+  }
+  function endMemoria(win) {
+    if (!M.on) return;
+    M.on = false;
+    clearInterval(M.tick);
+    var timeLeft = Math.max(0, MEM_MS - (performance.now() - M.t0)) / 1000;
+    var score = M.pairs * 3 + (win ? 10 + Math.floor(timeLeft / 2) : 0);
+    GREFS.memoria.play.hidden = true;
+    GREFS.memoria.intro.hidden = false;
+    activeGame = null;
+    if (win) { S.stats.memWins += 1; Snd.win(); }
+    S.stats.bestMem = Math.max(S.stats.bestMem, score);
+    finishGame('memoria', score, win
+      ? 'Encontraste las 6 parejas con ' + Math.round(timeLeft) + ' segundos de sobra (' + score + ' puntos).'
+      : 'Encontraste ' + M.pairs + ' de 6 parejas (' + score + ' puntos).');
+  }
+  GREFS.memoria.start.addEventListener('click', startMemoria);
+  GREFS.memoria.skip.addEventListener('click', function () {
+    watch('memoria', function () { S.games.memoria = 0; startMemoria(); });
+  });
+
+  /* ---------- Pedidos ---------- */
+  var ordScoreEl = $('ordScore'), ordComboEl = $('ordCombo'), ordTimeEl = $('ordTime'), ordBar = $('ordBar');
+  var ordOrder = $('ordOrder'), ordShelf = $('ordShelf');
+  var O = { on: false, t0: 0, pen: 0, score: 0, combo: 0, done: 0, shelf: [], need: [], got: {}, tick: 0 };
+
+  function startPedidos() {
+    if (activeGame || !gameReady('pedidos')) return;
+    activeGame = 'pedidos';
+    O.on = true; O.t0 = performance.now(); O.pen = 0; O.score = 0; O.combo = 0; O.done = 0;
+    O.shelf = shuffle(YUYOS).slice(0, 6);
+    ordShelf.innerHTML = '';
+    O.shelf.forEach(function (it) {
+      var b = el('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', it.name);
+      b.innerHTML = yuyoSVG(it) + '<span>' + it.short + '</span>';
+      b.addEventListener('pointerdown', function (e) { e.preventDefault(); tapYuyo(it, b); });
+      ordShelf.appendChild(b);
+    });
+    GREFS.pedidos.intro.hidden = true;
+    GREFS.pedidos.play.hidden = false;
+    ordBar.style.width = '100%';
+    ordTimeEl.textContent = Math.round(ORD_MS / 1000) + ' s';
+    newOrder();
+    updateOrdHud();
+    O.tick = setInterval(ordTick, 100);
+  }
+  function updateOrdHud() {
+    ordScoreEl.textContent = O.score + ' pts';
+    ordComboEl.textContent = 'Racha ' + O.combo;
+  }
+  function newOrder() {
+    O.need = shuffle(O.shelf).slice(0, 3);
+    O.got = {};
+    ordOrder.innerHTML = '';
+    var who = el('div', 'who');
+    who.innerHTML = faceSVG(false);
+    ordOrder.appendChild(who);
+    O.need.forEach(function (it) {
+      var slot = el('div', 'slot');
+      slot.setAttribute('data-id', it.id);
+      slot.innerHTML = yuyoSVG(it) + '<span>' + it.short + '</span>';
+      ordOrder.appendChild(slot);
+    });
+  }
+  function ordElapsed() { return performance.now() - O.t0 + O.pen; }
+  function ordTick() {
+    var p = ordElapsed() / ORD_MS;
+    if (p >= 1) { endPedidos(); return; }
+    ordBar.style.width = ((1 - p) * 100) + '%';
+    ordTimeEl.textContent = Math.ceil(ORD_MS / 1000 * (1 - p)) + ' s';
+  }
+  function tapYuyo(it, btn) {
+    if (!O.on) return;
+    var needed = O.need.some(function (n) { return n.id === it.id; });
+    if (needed && !O.got[it.id]) {
+      O.got[it.id] = true;
+      O.combo += 1;
+      O.score += 1;
+      if (O.combo % 6 === 0) O.score += 1;
+      Snd.pop(O.combo);
+      var slot = ordOrder.querySelector('[data-id="' + it.id + '"]');
+      if (slot) slot.classList.add('ok');
+      if (O.need.every(function (n) { return O.got[n.id]; })) {
+        O.score += 2;
+        O.done += 1;
+        S.stats.orders += 1;
+        newOrder();
+      }
+    } else {
+      O.combo = 0;
+      O.pen += 1500;
+      Snd.miss();
+      if (!reduce) { btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake'); }
+    }
+    updateOrdHud();
+  }
+  function endPedidos() {
+    if (!O.on) return;
+    O.on = false;
+    clearInterval(O.tick);
+    GREFS.pedidos.play.hidden = true;
+    GREFS.pedidos.intro.hidden = false;
+    activeGame = null;
+    S.stats.bestOrders = Math.max(S.stats.bestOrders, O.score);
+    finishGame('pedidos', O.score, 'Completaste ' + O.done + (O.done === 1 ? ' pedido' : ' pedidos') + ' (' + O.score + ' puntos).');
+  }
+  GREFS.pedidos.start.addEventListener('click', startPedidos);
+  GREFS.pedidos.skip.addEventListener('click', function () {
+    watch('pedidos', function () { S.games.pedidos = 0; startPedidos(); });
+  });
+
+  function endActiveGame() {
+    if (activeGame === 'rush') endRush();
+    else if (activeGame === 'memoria') endMemoria(false);
+    else if (activeGame === 'pedidos') endPedidos();
+  }
+
+  /* ---------- Selector de minijuegos ---------- */
+  var gamePanels = { rush: $('game-rush'), ruleta: $('game-ruleta'), memoria: $('game-memoria'), pedidos: $('game-pedidos') };
+  var segBtns = {};
+  var currentGame = 'rush';
+  Array.prototype.forEach.call(document.querySelectorAll('#seg button'), function (b) { segBtns[b.getAttribute('data-game')] = b; });
+  function setGame(name) {
+    if (activeGame && activeGame !== name) { lockToast(); return; }
+    currentGame = name;
+    Object.keys(gamePanels).forEach(function (k) {
+      gamePanels[k].hidden = (k !== name);
+      segBtns[k].setAttribute('aria-pressed', k === name ? 'true' : 'false');
+    });
+  }
+  Object.keys(segBtns).forEach(function (k) { segBtns[k].addEventListener('click', function () { setGame(k); }); });
+  var pips = { rush: $('pipRush'), ruleta: $('pipRuleta'), memoria: $('pipMemoria'), pedidos: $('pipPedidos') };
+  function renderGames() {
+    ['rush', 'memoria', 'pedidos'].forEach(function (k) {
+      renderGameIntro(k);
+      pips[k].hidden = !(gameReady(k) && activeGame !== k);
+    });
+    pips.ruleta.hidden = S.wheel.freeUsed;
+    renderWheel();
+    renderWheelButtons();
+  }
+
+  /* ---------- Colección ---------- */
+  var gGrid = $('gGrid'), yGrid = $('yGrid');
+  var collCount = $('collCount'), collTap = $('collTap'), collAuto = $('collAuto');
+  var basketBuy = $('basketBuy'), basketBuyCost = $('basketBuyCost'), basketTok = $('basketTok'), basketTokN = $('basketTokN');
+  var basketAd = $('basketAd'), basketAdText = $('basketAdText');
+  var collKey = '';
+
+  function itemBonusText(it, lv) {
+    var what = it.type === 'g' ? 'por toque' : 'de ingreso por segundo';
+    return pct(it.bonus * Math.max(1, lv)) + ' ' + what;
+  }
+  function renderCollectionGrids() {
+    var key = COLLECTION.map(function (c) { return S.col[c.id] || 0; }).join(',');
+    if (key === collKey) return;
+    collKey = key;
+    [['g', gGrid], ['y', yGrid]].forEach(function (pair) {
+      pair[1].innerHTML = '';
+      COLLECTION.filter(function (c) { return c.type === pair[0]; }).forEach(function (it) {
+        var lv = S.col[it.id] || 0;
+        var b = el('button', 'citem ' + it.rar + (lv ? '' : ' locked'));
+        b.type = 'button';
+        b.setAttribute('aria-label', lv ? it.name + ', nivel ' + lv : 'Objeto sin conseguir');
+        b.innerHTML = itemSVG(it);
+        b.appendChild(el('span', null, lv ? it.short : '???'));
+        var pp = el('span', 'pips');
+        for (var i = 0; i < ITEM_MAX; i++) pp.appendChild(el('span', 'pip2' + (i < lv ? ' on' : '')));
+        b.appendChild(pp);
+        b.addEventListener('click', function () { showItem(it); });
+        pair[1].appendChild(b);
+      });
+    });
+  }
+  function renderCollectionState() {
+    collCount.textContent = collected() + ' / ' + COLLECTION.length;
+    collTap.textContent = pct(colBonus('g'));
+    collAuto.textContent = pct(colBonus('y'));
+    renderCollectionGrids();
+    var c = basketCost();
+    basketBuy.disabled = S.coins < c;
+    basketBuyCost.textContent = '₲ ' + fmt(c);
+    basketTok.hidden = S.pulls.tokens <= 0;
+    basketTokN.textContent = String(S.pulls.tokens);
+    var cd = Math.max(0, (S.pulls.freeAt - Date.now()) / 1000);
+    basketAd.disabled = cd > 0 || adBusy;
+    basketAdText.textContent = cd > 0 ? 'Otra canasta gratis en ' + mmss(cd) : 'Canasta gratis viendo un anuncio';
+  }
+  function rollItem() {
+    S.pulls.pity += 1;
+    var r = Math.random() * 100, rar = r < 5 ? 'epica' : (r < 30 ? 'rara' : 'comun');
+    if (S.pulls.pity >= 10 && rar === 'comun') rar = 'rara';
+    if (rar !== 'comun') S.pulls.pity = 0;
+    var pool = COLLECTION.filter(function (c) { return c.rar === rar; });
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  function openBasket() {
+    var price = basketCost();
+    var it = rollItem(), lv = S.col[it.id] || 0;
+    var res = { item: it, isNew: lv === 0, maxed: false, level: lv + 1, refund: 0 };
+    if (lv >= ITEM_MAX) {
+      res.maxed = true; res.level = lv; res.refund = Math.round(price * 0.6);
+      grant(res.refund);
+    } else {
+      S.col[it.id] = lv + 1;
+    }
+    S.pulls.opened += 1;
+    S.stats.baskets += 1;
+    bump('basket', 1);
+    collKey = '';
+    Snd.win();
+    save();
+    var title = res.isNew ? '¡Objeto nuevo!' : (res.maxed ? 'Ya lo tenías al máximo' : 'Subió a nivel ' + res.level);
+    var text = res.maxed ? 'Recibís ₲ ' + fmt(res.refund) + ' a cambio.' : 'Nivel ' + res.level + ' de ' + ITEM_MAX + ': ' + itemBonusText(it, res.level) + '.';
+    showPull(title, it, text);
     render();
   }
-  rushStart.addEventListener('click', startRush);
-  rushSkip.addEventListener('click', function () {
-    watch('hora-pico', function () { S.rushReadyAt = 0; startRush(); });
+  function showPull(title, it, text) {
+    pullTitle.textContent = title;
+    pullIcon.innerHTML = itemSVG(it);
+    pullName.textContent = it ? it.name : '';
+    pullTag.textContent = RARITY[it.rar].name;
+    pullTag.className = 'pull-tag ' + it.rar;
+    pullText.textContent = text;
+    pullModal.hidden = false;
+    pullOk.focus();
+  }
+  function showItem(it) {
+    var lv = S.col[it.id] || 0;
+    if (!lv) {
+      pullTitle.textContent = 'Todavía no lo tenés';
+      pullIcon.innerHTML = itemSVG(it);
+      pullIcon.firstChild.style.filter = 'grayscale(1) brightness(0.7)';
+      pullIcon.firstChild.style.opacity = '0.35';
+      pullName.textContent = '???';
+      pullTag.textContent = RARITY[it.rar].name;
+      pullTag.className = 'pull-tag ' + it.rar;
+      pullText.textContent = 'Sale de las canastas del mercado. Cuando lo consigas te da ' + itemBonusText(it, 1) + ' por cada nivel.';
+      pullModal.hidden = false;
+      pullOk.focus();
+      return;
+    }
+    showPull(it.name, it, it.flavor + ' Nivel ' + lv + ' de ' + ITEM_MAX + ': ' + itemBonusText(it, lv) + '.');
+  }
+  pullOk.addEventListener('click', function () { pullModal.hidden = true; showNextReward(); });
+  basketBuy.addEventListener('click', function () {
+    var c = basketCost();
+    if (S.coins < c) return;
+    S.coins -= c;
+    openBasket();
+  });
+  basketTok.addEventListener('click', function () {
+    if (S.pulls.tokens <= 0) return;
+    S.pulls.tokens -= 1;
+    openBasket();
+  });
+  basketAd.addEventListener('click', function () {
+    if (Date.now() < S.pulls.freeAt) return;
+    watch('canasta', function () {
+      S.pulls.freeAt = Date.now() + BASKET_AD_CD;
+      openBasket();
+    });
+  });
+
+  /* ---------- Sucursales ---------- */
+  var branchTitle = $('branchTitle'), branchText = $('branchText'), branchFill = $('branchFill'), branchNeed = $('branchNeed');
+  var branchBtn = $('branchBtn'), branchBtnText = $('branchBtnText'), branchBtnSmall = $('branchBtnSmall');
+  var branchArmed = false, branchTimer = 0;
+  function canBranch() { return S.runTotal >= branchNeeded(); }
+  function renderBranch() {
+    var need = branchNeeded(), city = branchCity(S.branches);
+    branchTitle.textContent = S.branches === 0 ? 'Tu primera sucursal' : 'Sucursales abiertas: ' + S.branches;
+    branchText.textContent = 'Próxima sucursal: ' + city + '. Ganancias actuales: x' + String(branchMult()).replace('.', ',') + ', después x' + String(branchMult() + BRANCH_BONUS).replace('.', ',') + '.';
+    branchFill.style.width = Math.min(100, S.runTotal / need * 100) + '%';
+    branchNeed.textContent = 'Ganaste ₲ ' + fmt(S.runTotal) + ' de ₲ ' + fmt(need) + ' en esta partida.';
+    var ok = canBranch();
+    branchBtn.disabled = !ok;
+    branchBtnSmall.textContent = branchArmed ? 'Tocá de nuevo para confirmar' : 'Abrir sucursal';
+    branchBtnText.textContent = ok ? (branchArmed ? 'Se reinician guaraníes y mejoras' : 'En ' + city) : 'Todavía no alcanza';
+  }
+  branchBtn.addEventListener('click', function () {
+    if (!canBranch()) return;
+    if (!branchArmed) {
+      branchArmed = true;
+      renderBranch();
+      branchTimer = setTimeout(function () { branchArmed = false; renderBranch(); }, 4000);
+      return;
+    }
+    clearTimeout(branchTimer);
+    branchArmed = false;
+    var city = branchCity(S.branches);
+    S.branches += 1;
+    S.coins = 0; S.runTotal = 0; S.lv = {}; S.chest = 0; S.boostUntil = 0; S.stage = 0;
+    sceneKey = '';
+    Snd.win();
+    toast('Abriste una sucursal en ' + city + '. Ganancias x' + String(branchMult()).replace('.', ','));
+    save();
+    metasSigKey = '';
+    render();
+    renderMetas();
   });
 
   /* ---------- Metas ---------- */
   var streakTitle = $('streakTitle'), streakDots = $('streakDots');
   var missionList = $('missionList'), achList = $('achList');
+  var metasSigKey = '';
 
   function metaRow(title, sub, prog, target, btn, cls) {
     var card = el('div', 'card' + (cls ? ' ' + cls : ''));
@@ -1297,7 +2339,16 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     btn.disabled = !enabled;
     return btn;
   }
+  function metasSig() {
+    var parts = [S.streak, S.branches];
+    S.missions.list.forEach(function (m) { parts.push(m.k, Math.floor(missionProgress(m)), m.claimed ? 1 : 0); });
+    ACHIEVEMENTS.forEach(function (a) { parts.push(S.ach[a.id] || '', Math.min(a.target, Math.floor(metric(a.metric)))); });
+    return parts.join('|');
+  }
   function renderMetas() {
+    var sig = metasSig();
+    if (sig === metasSigKey) return;
+    metasSigKey = sig;
     streakTitle.textContent = 'Racha de ' + S.streak + (S.streak === 1 ? ' día' : ' días');
     var filled = ((Math.max(1, S.streak) - 1) % 7) + 1;
     streakDots.innerHTML = '';
@@ -1320,11 +2371,15 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     });
 
     achList.innerHTML = '';
-    ACHIEVEMENTS.forEach(function (a) {
+    var rows = ACHIEVEMENTS.map(function (a) {
+      var st = S.ach[a.id];
       var prog = Math.min(a.target, metric(a.metric));
-      var state = S.ach[a.id];
-      var btn = state === 'claimed' ? claimButton(a.reward, false, 'Cobrado')
-        : claimButton(a.reward, state === 'ready', state === 'ready' ? 'Cobrar' : 'Premio');
+      return { a: a, state: st, prog: prog, rank: st === 'ready' ? 0 : (st === 'claimed' ? 2 : 1), ratio: prog / a.target };
+    }).sort(function (x, y) { return x.rank - y.rank || y.ratio - x.ratio; });
+    rows.forEach(function (r) {
+      var a = r.a;
+      var btn = r.state === 'claimed' ? claimButton(a.reward, false, 'Cobrado')
+        : claimButton(a.reward, r.state === 'ready', r.state === 'ready' ? 'Cobrar' : 'Premio');
       btn.addEventListener('click', function () {
         if (S.ach[a.id] !== 'ready') return;
         S.ach[a.id] = 'claimed';
@@ -1333,7 +2388,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
         toast('Logro cobrado: +₲ ' + fmt(a.reward));
         save(); render(); renderMetas();
       });
-      achList.appendChild(metaRow(a.name, a.desc + ' · ' + fmt(prog) + ' / ' + fmt(a.target), prog, a.target, btn, state === 'claimed' ? 'done' : (state === 'ready' ? 'ready' : '')));
+      achList.appendChild(metaRow(a.name, a.desc + ' · ' + fmt(r.prog) + ' / ' + fmt(a.target), r.prog, a.target, btn, r.state === 'claimed' ? 'done' : (r.state === 'ready' ? 'ready' : '')));
     });
   }
   function checkAchievements() {
@@ -1347,18 +2402,20 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   }
 
   /* ---------- Pestañas ---------- */
-  var views = { puesto: $('view-puesto'), rush: $('view-rush'), metas: $('view-metas') };
+  var views = { puesto: $('view-puesto'), equipo: $('view-equipo'), juegos: $('view-juegos'), coleccion: $('view-coleccion'), metas: $('view-metas') };
   var tabs = {};
   Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { tabs[t.getAttribute('data-view')] = t; });
   var currentView = 'puesto';
   function setView(name) {
-    if (R.on && name !== 'rush') { toast('Terminá la hora pico antes de cambiar de pantalla.'); return; }
+    if (activeGame && name !== 'juegos') { lockToast(); return; }
     currentView = name;
     Object.keys(views).forEach(function (k) {
       views[k].hidden = (k !== name);
       tabs[k].setAttribute('aria-current', k === name ? 'page' : 'false');
     });
-    if (name === 'metas') renderMetas();
+    if (name === 'metas') { metasSigKey = ''; renderMetas(); }
+    if (name !== 'puesto') bubbleEl.hidden = true;
+    render();
     try { window.scrollTo(0, 0); } catch (e) {}
   }
   Object.keys(tabs).forEach(function (k) { tabs[k].addEventListener('click', function () { setView(k); }); });
@@ -1368,15 +2425,17 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   resetBtn.addEventListener('click', function () {
     if (!resetArmed) {
       resetArmed = true;
-      resetBtn.textContent = 'Tocá de nuevo para borrar tu progreso';
+      resetBtn.textContent = 'Tocá de nuevo para borrar todo tu progreso';
       resetTimer = setTimeout(function () { resetArmed = false; resetBtn.textContent = 'Reiniciar partida'; }, 3500);
       return;
     }
     clearTimeout(resetTimer);
     resetArmed = false;
     resetBtn.textContent = 'Reiniciar partida';
+    endActiveGame();
     S = fresh();
-    sceneKey = '';
+    rewardQueue = []; rewardCurrent = null; rewardModal.hidden = true;
+    sceneKey = ''; collKey = ''; metasSigKey = ''; Wheel.key = '';
     checkDay();
     save();
     render(); renderMetas(); renderMute();
@@ -1393,9 +2452,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     last = now;
     if (document.hidden) return;
     dt = Math.min(dt, 2);
-    var gain = autoBase() * mult() * dt;
-    S.coins += gain; S.total += gain;
-    if (S.chest < CHEST_SECONDS) S.chest = Math.min(CHEST_SECONDS, S.chest + dt);
+    var gain = autoValue() * mult() * dt;
+    S.coins += gain; S.total += gain; S.runTotal += gain;
+    if (S.chest < CHEST_SECONDS) S.chest = Math.min(CHEST_SECONDS, S.chest + dt * chestSpeed());
     checkStage();
     slow += 1;
     if (slow >= 10) {
@@ -1409,7 +2468,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) {
-      if (R.on) endRush();
+      endActiveGame();
       save();
     } else {
       last = performance.now();
@@ -1423,13 +2482,14 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var adNote = $('adNote');
   if (native && adNote) adNote.textContent = 'Anuncios de prueba de Google. En la versión publicada serán anuncios reales de AdMob.';
   buildUpgrades();
+  buildHelpers();
   buildRushGrid();
   renderMute();
   checkDay();
   checkStage();
   queueDaily();
   checkOffline();
-  queueRushPending();
+  queuePending();
   render();
   renderMetas();
   if (native) admobPreload();
