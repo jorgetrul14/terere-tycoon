@@ -121,8 +121,12 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .bubble {
   position: absolute; left: 0.6rem; top: 0.6rem; max-width: 72%;
   background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 0.8rem;
-  padding: 0.35rem 0.6rem; font-size: 0.8rem; line-height: 1.25;
+  padding: 0.35rem 0.6rem; font-size: 0.8rem; line-height: 1.25; pointer-events: none;
 }
+.bubble .tip { color: var(--yerba); font-weight: 700; white-space: nowrap; }
+.scene svg { pointer-events: none; }
+.scene [data-h], .scene [data-c] { cursor: pointer; pointer-events: auto; }
+.scene { -webkit-tap-highlight-color: transparent; }
 .cust { animation: walk linear infinite; }
 @keyframes walk {
   from { transform: translateX(-20px); }
@@ -185,7 +189,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 .btn:disabled svg { opacity: 0.45; }
 .btn-wide { width: 100%; }
 
-.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; background: var(--panel-2); padding: 0.3rem; border-radius: 1rem; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; background: var(--panel-2); padding: 0.3rem; border-radius: 1rem; }
 .seg button {
   position: relative; border: 0; background: none; color: var(--muted); font: 700 0.8rem/1.1 var(--font-body);
   padding: 0.6rem 0.2rem; border-radius: 0.75rem; cursor: pointer; min-height: 2.75rem; touch-action: manipulation;
@@ -246,13 +250,29 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .shelf button svg { width: 2.8rem; height: 2.8rem; pointer-events: none; }
+.sortlabel { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.78rem; font-weight: 700; }
+.sortrow { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 0.4rem; align-items: end; background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 0.6rem 0.5rem; }
+.sortrow button {
+  border: 2px solid transparent; background: none; border-radius: 0.8rem; padding: 0.3rem 0.1rem; cursor: pointer; color: var(--fg);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.2rem; min-height: 6.2rem;
+  font: 700 0.85rem/1 var(--font-body); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.sortrow button svg { height: auto; display: block; pointer-events: none; }
+.sortrow button.sel { border-color: var(--gold); background: var(--panel-2); }
+.sortrow.done button { border-color: var(--yerba); }
+.seqpads { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+.seqpad {
+  aspect-ratio: 1.5; border: 0; border-radius: 1.2rem; font: 400 2rem/1 var(--font-display); cursor: pointer;
+  filter: brightness(0.8); transition: filter 0.12s, box-shadow 0.12s; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.seqpad.lit { filter: brightness(1.15); box-shadow: 0 0 0 0.3rem var(--fg); }
 .shake { animation: shake 0.25s; }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
 .hcard { background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; }
 .hcard.off .avatar { filter: grayscale(1); opacity: 0.55; }
 .hhead { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); gap: 0.75rem; align-items: center; }
-.avatar { background: var(--panel-2); border-radius: 50%; line-height: 0; overflow: hidden; }
+.avatar { background: var(--panel-2); border-radius: 50%; line-height: 0; overflow: hidden; border: 0; padding: 0; width: 100%; cursor: pointer; display: block; -webkit-tap-highlight-color: transparent; }
 .avatar svg { width: 100%; height: auto; display: block; }
 .hhead h3 { margin: 0; font-size: 1rem; font-weight: 700; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.1rem 0.5rem; }
 .hhead h3 small { color: var(--muted); font-weight: 600; font-size: 0.78rem; }
@@ -533,7 +553,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
           <ellipse cx="136" cy="13" rx="10" ry="4.5" fill="#E4E8EA" stroke="#6F777D" stroke-width="1.5" transform="rotate(20 136 13)"/>
         </svg>
       </button>
-      <p class="hint">Tocá la guampa para ganar guaraníes</p>
+      <p class="hint">Tocá la guampa para ganar guaraníes. También podés tocar a las personas del puesto: charlan y a veces dejan propina.</p>
     </div>
 
     <section class="block" aria-labelledby="h-ads">
@@ -585,6 +605,8 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       <button type="button" data-game="ruleta" aria-pressed="false">Ruleta<span class="pip" id="pipRuleta" hidden></span></button>
       <button type="button" data-game="memoria" aria-pressed="false">Memoria<span class="pip" id="pipMemoria" hidden></span></button>
       <button type="button" data-game="pedidos" aria-pressed="false">Pedidos<span class="pip" id="pipPedidos" hidden></span></button>
+      <button type="button" data-game="orden" aria-pressed="false">Ordenar<span class="pip" id="pipOrden" hidden></span></button>
+      <button type="button" data-game="secuencia" aria-pressed="false">Secuencia<span class="pip" id="pipSecuencia" hidden></span></button>
     </div>
 
     <div class="panel" id="game-rush">
@@ -664,6 +686,49 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
         <div class="bar"><i id="ordBar" style="width:100%"></i></div>
         <div class="order" id="ordOrder"></div>
         <div class="shelf" id="ordShelf"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="game-orden" hidden>
+      <div class="rush-card" id="srtIntro">
+        <h2>Ordenar el estante</h2>
+        <p>Las guampas llegaron desordenadas. Tocá una y después otra para cambiarlas de lugar, y dejalas de la más chica a la más grande. Si lo hacés con la menor cantidad de cambios, ganás puntos extra. Dura 35 segundos.</p>
+        <p id="srtInfo"></p>
+        <button class="btn btn-buy btn-wide" id="srtStart" type="button"><span id="srtStartText">Empezar</span></button>
+        <button class="btn btn-ad btn-wide" id="srtSkip" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Jugar ya viendo un anuncio</span>
+        </button>
+      </div>
+      <div class="play" id="srtPlay" hidden>
+        <div class="hud">
+          <span class="stat" id="srtScore">0 pts</span>
+          <span class="stat" id="srtMoves">Cambios 0/0</span>
+          <span class="stat" id="srtTime">35 s</span>
+        </div>
+        <div class="bar"><i id="srtBar" style="width:100%"></i></div>
+        <div class="sortlabel"><span>Más chica</span><span>Más grande</span></div>
+        <div class="sortrow" id="srtRow"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="game-secuencia" hidden>
+      <div class="rush-card" id="seqIntro">
+        <h2>Secuencia de guampas</h2>
+        <p>Mirá qué guampas se iluminan y repetí el mismo orden. Cada ronda suma una más. Ganás 3 puntos por ronda, y si completás las 10, un premio extra. Si te equivocás, termina.</p>
+        <p id="seqInfo"></p>
+        <button class="btn btn-buy btn-wide" id="seqStart" type="button"><span id="seqStartText">Empezar</span></button>
+        <button class="btn btn-ad btn-wide" id="seqSkip" type="button" hidden>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>
+          <span>Jugar ya viendo un anuncio</span>
+        </button>
+      </div>
+      <div class="play" id="seqPlay" hidden>
+        <div class="hud">
+          <span class="stat" id="seqRound">Ronda 1</span>
+          <span class="stat" id="seqStatus">Mirá la secuencia</span>
+        </div>
+        <div class="seqpads" id="seqPads"></div>
       </div>
     </div>
   </section>
@@ -854,6 +919,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var RUSH_MS = 20000, RUSH_CD = 90000;
   var MEM_MS = 45000, MEM_CD = 120000;
   var ORD_MS = 25000, ORD_CD = 120000;
+  var SORT_MS = 35000, SORT_CD = 120000;
+  var SEQ_MAX = 10, SEQ_CD = 150000;
+  var GAME_KEYS = ['rush', 'memoria', 'pedidos', 'orden', 'secuencia'];
   var BASKET_AD_CD = 6 * 60000;
   var WHEEL_EXTRA_MAX = 3;
   var BRANCH_BASE = 1000000, BRANCH_STEP = 8, BRANCH_BONUS = 0.5;
@@ -878,20 +946,93 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var CUST_COLORS = ['#D9503F', '#3F7FD9', '#8E5BC9', '#E0A526', '#2E9C6A', '#D96C9E'];
   var CITIES = ['Luque', 'San Lorenzo', 'Ciudad del Este', 'Encarnación', 'Pedro Juan Caballero', 'Concepción'];
 
-  /* ---------- Ayudantes ---------- */
+  /* ---------- Ayudantes ----------
+     "say" tiene las frases de cada uno: sueltas (any), según la hora (morning/afternoon/night),
+     al tocarlos (tap) y como reacción a lo que hace el jugador (buy, game, pull, ad, zone, hire). */
   var HELPERS = [
     { id: 'rosa', name: 'Rosa', role: 'Cebadora', quote: 'El secreto está en el yuyo fresquito.', base: 2500, sx: 120,
       eff: function (l) { return '+' + (l * 12) + '% de ingreso por segundo'; },
-      col: { skin: '#E2B48C', shirt: '#3F8F4A' } },
+      col: { skin: '#E2B48C', shirt: '#3F8F4A' },
+      say: {
+        any: ["El secreto está en el yuyo fresquito.", "Menta'i para el calor, poleo para el alma.", "¡Mba'éichapa! ¿Cómo andan las ventas?", "El tereré se toma con calma y con amigos.", "La yerba buena no se apura, mitã.", "Cuando huele a yuyo, vuelven los clientes.", "Lavé todas las hierbas esta mañana.", "Un tereré compartido sabe mejor.", "Mi abuela decía: poco hielo y mucha charla.", "Ojo con la guampa, que se calienta el agua.", "Cebar es un arte, no una carrera.", "Hoy el cedrón está bien perfumado."],
+        morning: ["Buen día. El agua está recién sacada.", "A la mañana el yuyo está más fresco.", "Temprano se vende el primer tereré del día."],
+        afternoon: ["A esta hora el calor pide tereré con limón.", "Pasó la siesta, ahora vienen los clientes.", "Con este sol, no queda un yuyo sin usar."],
+        night: ["De noche también hay sed, no te creas.", "Ya se refrescó el aire, ¿no?", "Cierro la yerbera cuando se vaya el último cliente."],
+        tap: ["¡Ey! Me hacés cosquillas.", "Aguyje por pasar, jefe.", "¿Querés un sorbito?", "Tengo las manos con olor a menta.", "Todo marcha, iporã.", "¿Te cebo uno bien frío?", "No me distraigas, estoy contando hojas.", "Qué lindo cuando hay gente en el puesto."],
+        buy: ["¡Qué lindo, el puesto se ve mejor!", "Eso sí es invertir con cabeza."],
+        game: ["¡Qué buen juego! Se nota la práctica.", "Después de jugar, un tereré para descansar."],
+        pull: ["¡Qué belleza para la colección!", "Eso va muy bien con el yuyo del día."],
+        ad: ["Gracias por mirar, ¡todo suma!", "Cada anuncio es un empujoncito para el puesto."],
+        zone: ["¡Mirá cómo crece el negocio!", "Lugar nuevo, mismo yuyo fresquito."],
+        hire: ["Soy Rosa, la cebadora. ¡Mba'éichapa!", "Yo me ocupo de los yuyos, jefe."]
+      } },
     { id: 'carlitos', name: 'Carlitos', role: 'Repartidor', quote: '¡Yo llego antes que el calor!', base: 4000, sx: 252,
       eff: function (l) { return '+' + (l * 12) + '% por toque'; },
-      col: { skin: '#C68E67', shirt: '#E0A526' } },
+      col: { skin: '#C68E67', shirt: '#E0A526' },
+      say: {
+        any: ["¡Yo llego antes que el calor!", "Tengo tres pedidos en la moto.", "Dale que dale, el barrio no espera.", "¡Pedido nuevo en la costanera!", "Esquivando baches, pero llego.", "¿Hay algo que llevar? Estoy listo.", "Si el hielo se derrite, yo corro más.", "Me conocen en todo el barrio.", "Hoy rompo el récord de entregas.", "¡Con la moto bien aceitada!", "Propina doble si llego en cinco minutos.", "Che, ¿viste qué rápido soy?"],
+        morning: ["Madrugué para el primer reparto.", "Con el fresquito se reparte mejor.", "Primer pedido del día, ¡ya salió!"],
+        afternoon: ["Con este sol, ¡todos piden tereré!", "Hoy el calor está de mi lado.", "A la hora de la siesta no hay tráfico."],
+        night: ["Último reparto y a descansar.", "De noche las calles están más libres.", "Pedidos nocturnos, mi especialidad."],
+        tap: ["¡Ey, jefe! ¿Hay pedido?", "No me frenes, que voy volando.", "Listo para salir cuando digas.", "¡Ojo con el casco!", "¿Me das un hielito para el camino?", "Hoy vendimos más que ayer, ¿no?", "Nada me detiene, ¡nada!", "Aguyje, jefe. Siempre a tu orden."],
+        buy: ["¡Eso! Más mejoras, más velocidad.", "Con eso sí llego más rápido."],
+        game: ["¡Qué reflejos, jefe!", "¡Así se juega, con velocidad!"],
+        pull: ["¡Qué pieza! Yo la llevo en el próximo reparto.", "¡Mirá eso! ¡Para la vitrina!"],
+        ad: ["¡Un anuncio más, un reparto más!", "¡Gracias, jefe! ¡Vamos con todo!"],
+        zone: ["¡Ahora sí hay más calles para repartir!", "¡Qué zona nueva! ¡Quiero conocerla ya!"],
+        hire: ["¡Llegué! Soy Carlitos, el repartidor.", "¡Listo para repartir, jefe!"]
+      } },
     { id: 'tito', name: 'Tito', role: 'Heladero', quote: 'Hielo bien duro, tereré bien frío.', base: 15000, sx: 74,
       eff: function (l) { return 'Cofre ' + (l * 15) + '% más rápido y +' + (l * 10) + '% de premio'; },
-      col: { skin: '#EBC09A', shirt: '#1F83A6' } },
+      col: { skin: '#EBC09A', shirt: '#1F83A6' },
+      say: {
+        any: ["Hielo bien duro, tereré bien frío.", "Con esta temperatura el hielo vale oro.", "Mi heladera no falla jamás.", "Poco hielo no es tereré, es té tibio.", "El truco: hielo picado fino.", "Hielo de ayer no sirve hoy.", "Un buen tereré se cuida con hielo.", "Hoy preparé hielo de sobra.", "Cuando aprieta el sol, todos quieren hielo.", "Cuando falta hielo, sobra el mal humor.", "Mi mejor amigo es el congelador.", "¿Escuchás? Es el hielo cantando."],
+        morning: ["A esta hora el hielo está recién hecho.", "Buen día. La heladera amaneció a tope.", "Madrugué para picar hielo."],
+        afternoon: ["Calor de rompe cabeza, hielo a mil.", "A esta hora se derrite todo, menos mi hielo.", "¡Qué sol! Este es mi momento."],
+        night: ["De noche el hielo dura el doble.", "Qué fresquito, casi me quedo sin trabajo.", "Dejo el hielo cargado para mañana."],
+        tap: ["¡Ojo con los dedos, que está helado!", "¿Querés hielo? Siempre hay.", "Tranqui, jefe. Todo bajo control.", "Estoy más frío que mi heladera.", "Aguyje por pasar a saludar.", "Hielo no falta, tampoco charla.", "Dale, sacale una foto a mi heladera.", "Con calma, jefe, que el hielo no corre."],
+        buy: ["Buena compra, jefe. Eso se nota.", "Mejor equipo, mejor hielo."],
+        game: ["Nada mal, jefe. Fresquito el puntaje.", "Buen juego. ¿Un hielito para festejar?"],
+        pull: ["Esa pieza va bien con hielo bien duro.", "Qué linda guampa. Se va a ver bien con hielo."],
+        ad: ["Un anuncio más y otro bloque de hielo.", "Gracias por mirar, jefe."],
+        zone: ["Zona nueva, hielo nuevo.", "Ahora sí hace falta una heladera más grande."],
+        hire: ["Soy Tito, el heladero. Yo me ocupo del frío.", "Hielo no va a faltar, jefe."]
+      } },
     { id: 'nilda', name: 'Nilda', role: 'Contadora', quote: 'Cuenta clara, negocio que dura.', base: 50000, sx: 304,
       eff: function (l) { return '+' + (l * 10) + '% en minijuegos y +' + (l * 30) + ' min de ganancias sin conexión'; },
-      col: { skin: '#A8734F', shirt: '#8E5BC9' } }
+      col: { skin: '#A8734F', shirt: '#8E5BC9' },
+      say: {
+        any: ["Cuenta clara, negocio que dura.", "Anotado todo en el cuaderno.", "Lo que no se anota, se pierde.", "Los números hablan, hay que escucharlos.", "Vamos bien, pero siempre se puede mejor.", "Cada guaraní cuenta, jefe.", "Revisé los gastos: todo en orden.", "Ahorrar hoy, invertir mañana.", "La caja cuadra, como debe ser.", "Hay que reinvertir, jefe.", "Una buena contadora cuida cada centavo.", "El que anota, no se pierde."],
+        morning: ["Buen día, jefe. Hoy revisé las cuentas.", "Cierre de ayer: todo en orden.", "Primero el café, después las planillas."],
+        afternoon: ["A esta hora hago el balance parcial.", "La tarde es buena para sacar cuentas.", "Ventas de la tarde: muy buenas."],
+        night: ["Cierro la caja cuando se vaya el último.", "Después de contar, a descansar.", "El balance de hoy, listo."],
+        tap: ["No me distraigas, estoy sumando.", "¿Dudas con las cuentas? Preguntá.", "Aguyje, jefe. Vamos muy bien.", "Tengo un cuaderno solo para vos.", "Dos más dos: siempre cuatro.", "Si querés ahorrar, anotá todo.", "Hoy hay que revisar los números.", "Lo mío son las cuentas, no los chistes."],
+        buy: ["Inversión inteligente, jefe.", "Eso sí rinde. Ya lo calculé."],
+        game: ["Buen puntaje. Lo anoto en el cuaderno.", "Un premio más a la caja."],
+        pull: ["Una pieza de colección es una inversión.", "Eso sube el valor del puesto."],
+        ad: ["Cada anuncio es un ingreso, muy bien.", "Eso entra directo a la caja."],
+        zone: ["Lugar nuevo, números nuevos.", "Hay que abrir un cuaderno nuevo."],
+        hire: ["Soy Nilda, la contadora. Yo cuido las cuentas.", "Con mis números, el negocio crece."]
+      } }
+  ];
+  function helperById(id) { for (var i = 0; i < HELPERS.length; i++) { if (HELPERS[i].id === id) return HELPERS[i]; } return null; }
+
+  /* Frases de la zona (las dice un ayudante cualquiera), de los clientes y charlas entre dos o tres ayudantes. */
+  var ZONE_SAY = [
+    ["Un puestito chico, pero con mucho cariño.", "El barrio ya nos conoce."],
+    ["Cada vez pasa más gente por la esquina.", "Esta esquina nunca se queda sin clientes."],
+    ["Qué linda vista del río desde acá.", "Con la brisa de la costanera se vende solo."],
+    ["Estamos en pleno centro, ¡quién diría!", "Cuántos autos y cuánta gente."],
+    ["Una cadena nacional. ¡Qué orgullo!", "Ya nos conocen en todo el país, jefe."]
+  ];
+  var CUST_SAY = ["¡Un tereré bien frío, por favor!", "¿Tienen cedrón?", "Hoy sí que hace calor.", "Me llevo uno para el camino.", "Qué bien huele acá.", "Uno de menta'i, por favor.", "Vine por el mejor tereré del barrio.", "¿Me lo cebás bien cargado?", "¡Qué rico, cada día mejor!", "Aguyje, ¡hasta mañana!", "Con este calor, necesito uno ya.", "¿Hay hielo extra?", "Mi abuela dice que este es el mejor.", "Traje a mis amigos, ¡prepará más!"];
+  var CHATS = [
+    [['rosa', "Carlitos, ¿llevaste el pedido de la esquina?"], ['carlitos', "¡Ya voy volando, doña Rosa!"]],
+    [['rosa', "Tito, necesito hielo para los yuyos."], ['tito', "Enseguida, Rosa. Bien duro, como te gusta."]],
+    [['nilda', "Rosa, ¿cuántos yuyos usaste hoy?"], ['rosa', "Los que hicieron falta, Nilda."], ['nilda', "Eso no me sirve para el cuaderno."]],
+    [['carlitos', "Tito, ¿me das hielo para el camino?"], ['tito', "Tomá, pero no corras con eso."]],
+    [['nilda', "Carlitos, ¡anotá cada entrega!"], ['carlitos', "Ya anoté… creo."]],
+    [['tito', "Nilda, ¿cuánto sale el hielo este mes?"], ['nilda', "Menos que tu charla, Tito."]]
   ];
 
   /* ---------- Colección ---------- */
@@ -934,6 +1075,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   ];
 
   var ACHIEVEMENTS = [
+    { id: 'talk1', name: 'Conversador', desc: 'Charlá 50 veces en el puesto', metric: 'talks', target: 50, reward: 6000 },
+    { id: 'sort1', name: 'Todo en su lugar', desc: 'Ordená 25 estantes', metric: 'sorts', target: 25, reward: 15000 },
+    { id: 'seq1', name: 'Buen oído', desc: 'Completá 8 rondas seguidas en Secuencia', metric: 'bestSeq', target: 8, reward: 15000 },
     { id: 'taps1', name: 'Calentando la mano', desc: 'Tocá la guampa 100 veces', metric: 'taps', target: 100, reward: 250 },
     { id: 'taps2', name: 'Dedos de acero', desc: 'Tocá la guampa 2.500 veces', metric: 'taps', target: 2500, reward: 5000 },
     { id: 'earn1', name: 'Primer capital', desc: 'Juntá ₲ 1.000 en total', metric: 'total', target: 1000, reward: 300 },
@@ -983,10 +1127,10 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   function fresh() {
     return {
       coins: 0, total: 0, runTotal: 0, lv: {}, boostUntil: 0, chest: 0, ads: 0, lastSeen: Date.now(),
-      stats: { taps: 0, bought: 0, rushes: 0, bestCombo: 0, bestScore: 0, spins: 0, memWins: 0, bestMem: 0, orders: 0, bestOrders: 0, baskets: 0 },
+      stats: { taps: 0, bought: 0, rushes: 0, bestCombo: 0, bestScore: 0, spins: 0, memWins: 0, bestMem: 0, orders: 0, bestOrders: 0, baskets: 0, sorts: 0, bestOrden: 0, bestSeq: 0, talks: 0 },
       ach: {}, stage: 0, day: '', streak: 0, streakMax: 0, dailyPending: false,
       missions: { day: '', startTotal: 0, list: [] },
-      games: { rush: 0, memoria: 0, pedidos: 0 }, pend: [], set: defaultSet(),
+      games: { rush: 0, memoria: 0, pedidos: 0, orden: 0, secuencia: 0 }, pend: [], set: defaultSet(),
       help: {}, col: {}, pulls: { opened: 0, pity: 0, freeAt: 0, tokens: 0 },
       wheel: { day: '', freeUsed: false, extra: 0 }, branches: 0
     };
@@ -1040,7 +1184,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
             });
         }
         if (o.games && typeof o.games === 'object') {
-          ['rush', 'memoria', 'pedidos'].forEach(function (k) { s.games[k] = num(o.games[k], 0); });
+          GAME_KEYS.forEach(function (k) { s.games[k] = num(o.games[k], 0); });
         } else {
           s.games.rush = num(o.rushReadyAt, 0);
         }
@@ -1156,7 +1300,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   function newMissions() {
     var seed = parseInt(String(S.day).replace(/-/g, ''), 10) || 1;
     function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
-    var pool = ['taps', 'earn', 'buy', 'rush', 'ads', 'basket'];
+    var pool = ['taps', 'earn', 'buy', 'rush', 'ads', 'basket', 'talk'];
     for (var i = pool.length - 1; i > 0; i--) {
       var j = Math.floor(rnd() * (i + 1));
       var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
@@ -1171,6 +1315,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       else if (k === 'rush') target = 3;
       else if (k === 'ads') target = 2;
       else if (k === 'basket') target = 1;
+      else if (k === 'talk') target = 8;
       return { k: k, target: target, reward: reward, progress: 0, claimed: false };
     });
     S.missions = { day: S.day, startTotal: S.total, list: list };
@@ -1181,6 +1326,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       case 'earn': return 'Ganá ₲ ' + fmt(m.target);
       case 'buy': return 'Comprá ' + m.target + ' mejoras';
       case 'rush': return 'Jugá ' + m.target + ' minijuegos';
+      case 'talk': return 'Charlá ' + m.target + ' veces en el puesto';
       case 'basket': return 'Abrí ' + m.target + (m.target === 1 ? ' canasta' : ' canastas');
       default: return 'Mirá ' + m.target + ' anuncios';
     }
@@ -1226,6 +1372,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
       case 'spins': return S.stats.spins;
       case 'memWins': return S.stats.memWins;
       case 'orders': return S.stats.orders;
+      case 'sorts': return S.stats.sorts;
+      case 'bestSeq': return S.stats.bestSeq;
+      case 'talks': return S.stats.talks;
       case 'helpers': return helpersHired();
       case 'collected': return collected();
       case 'branches': return S.branches;
@@ -1848,7 +1997,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     return Ads.showRewarded(placement).then(function (result) {
       adBusy = false;
       Snd.wake();
-      if (result === 'rewarded') { S.ads += 1; bump('ads', 1); onReward(); save(); }
+      if (result === 'rewarded') { S.ads += 1; bump('ads', 1); onReward(); react('ad'); save(); }
       else if (result === 'closed') { toast('Cerraste el anuncio antes de tiempo, así que no hay premio.'); }
       else { toast('No hay un anuncio disponible ahora. Probá de nuevo en un rato.'); }
       render();
@@ -2161,13 +2310,13 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (stage >= 3) lights += '<rect x="170" y="106" width="60" height="16" rx="3" fill="none" stroke="#7CF4C8" stroke-width="1.6" style="opacity:var(--nf)"/>';
     /* ayudantes */
     HELPERS.forEach(function (h, k) {
-      if (helperLv(h.id) > 0) s += '<g transform="translate(' + h.sx + ' 83) scale(0.78)"><g class="hb" style="animation-delay:-' + (k * 0.45) + 's">' + personInner(h) + '</g></g>';
+      if (helperLv(h.id) > 0) s += '<g data-h="' + h.id + '" transform="translate(' + h.sx + ' 83) scale(0.78)"><rect x="4" y="2" width="52" height="58" fill="transparent"/><g class="hb" style="animation-delay:-' + (k * 0.45) + 's">' + personInner(h) + '</g></g>';
     });
     /* gente y animales */
     if (stage <= 1) s += '<g class="cust rev" style="animation-duration:34s;animation-delay:-9s"><g transform="translate(0 137)"><g class="bob"><ellipse cx="0" cy="-5" rx="7" ry="3.4" fill="#C98E52"/><circle cx="8" cy="-8" r="3.2" fill="#C98E52"/><rect x="-6" y="-3" width="2" height="4" fill="#C98E52"/><rect x="4" y="-3" width="2" height="4" fill="#C98E52"/></g></g></g>';
     for (i = 0; i < custCount; i++) {
       var dur = 13 + ((i * 5) % 9);
-      s += '<g class="cust' + (i % 3 === 2 ? ' rev' : '') + '" style="animation-duration:' + dur + 's;animation-delay:-' + (i * 3.1) + 's"><g transform="translate(0 139) scale(1.12)">' + person(CUST_COLORS[i % CUST_COLORS.length], i % 4 === 1 ? '#F4F1E8' : (i % 4 === 3 ? '#2D5FA8' : '')) + '</g></g>';
+      s += '<g data-c="1" class="cust' + (i % 3 === 2 ? ' rev' : '') + '" style="animation-duration:' + dur + 's;animation-delay:-' + (i * 3.1) + 's"><g transform="translate(0 139) scale(1.12)"><rect x="-9" y="-34" width="18" height="40" fill="transparent"/>' + person(CUST_COLORS[i % CUST_COLORS.length], i % 4 === 1 ? '#F4F1E8' : (i % 4 === 3 ? '#2D5FA8' : '')) + '</g></g>';
     }
     if (stage >= 2) s += '<g class="car" style="animation-delay:-6s"><rect x="0" y="-9" width="26" height="8" rx="2.5" fill="#3F7FD9"/><rect x="6" y="-14" width="13" height="6" rx="2" fill="#CFE3EC"/><circle cx="6" cy="-1" r="3" fill="#2B2B33"/><circle cx="20" cy="-1" r="3" fill="#2B2B33"/><rect x="0" y="-6" width="3" height="2" fill="#FFE59A"/></g>';
     if (stage >= 3) s += '<g class="bus"><rect x="0" y="-15" width="46" height="13" rx="3" fill="#E0A526"/><rect x="4" y="-12" width="9" height="6" fill="#CFE3EC"/><rect x="16" y="-12" width="9" height="6" fill="#CFE3EC"/><rect x="28" y="-12" width="9" height="6" fill="#CFE3EC"/><circle cx="9" cy="-2" r="3.2" fill="#2B2B33"/><circle cx="36" cy="-2" r="3.2" fill="#2B2B33"/></g>';
@@ -2201,25 +2350,99 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     if (idx > S.stage) {
       S.stage = idx;
       FX.zone(STAGES[idx].name);
+      react('zone');
       Snd.zone();
       save();
     }
   }
 
-  var bubbleTimer = 0;
-  function sayQuote() {
-    var hired = HELPERS.filter(function (h) { return helperLv(h.id) > 0; });
-    if (!hired.length || currentView !== 'puesto' || document.hidden) return;
-    var h = hired[Math.floor(Math.random() * hired.length)];
+  /* ---------- Charla del puesto ----------
+     Los ayudantes hablan solos (frases según la hora y la zona, charlas entre ellos), reaccionan a lo que hacés
+     y, si los tocás en la escena (o a los clientes), contestan y a veces dejan propina. */
+  var bubbleTimer = 0, chatTimers = [], lastSaid = {}, tipAt = {}, pendingReact = null, lastReactAt = 0;
+  function pick(key, arr) {
+    var i, tries = 0;
+    do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastSaid[key] && ++tries < 6);
+    lastSaid[key] = i;
+    return arr[i];
+  }
+  function hiredList() { return HELPERS.filter(function (h) { return helperLv(h.id) > 0; }); }
+  function dayPart() { var t = todHour(); return t < 5 || t >= 20 ? 'night' : (t < 12 ? 'morning' : 'afternoon'); }
+  function showBubble(name, text, tip) {
     bubbleEl.innerHTML = '';
-    var b = el('b', null, h.name + ': ');
-    bubbleEl.appendChild(b);
-    bubbleEl.appendChild(document.createTextNode(h.quote));
+    bubbleEl.appendChild(el('b', null, name + ': '));
+    bubbleEl.appendChild(document.createTextNode(text));
+    if (tip) bubbleEl.appendChild(el('span', 'tip', ' +₲ ' + fmt(tip)));
     bubbleEl.hidden = false;
     clearTimeout(bubbleTimer);
     bubbleTimer = setTimeout(function () { bubbleEl.hidden = true; }, 3600);
   }
-  setInterval(sayQuote, 11000);
+  function helperSay(h, kind, tip) {
+    var pool = h.say[kind] || h.say.any;
+    if (kind === 'any') { var dp = h.say[dayPart()]; pool = pool.concat(dp, dp); }
+    showBubble(h.name, pick(h.id + kind, pool), tip);
+  }
+  function stopChat() { chatTimers.forEach(clearTimeout); chatTimers = []; }
+  function startChat() {
+    var ok = CHATS.filter(function (c) { return c.every(function (l) { return helperLv(l[0]) > 0; }); });
+    if (!ok.length) return false;
+    stopChat();
+    pick('chat', ok).forEach(function (l, i) {
+      chatTimers.push(setTimeout(function () {
+        if (currentView === 'puesto' && !document.hidden) showBubble(helperById(l[0]).name, l[1]);
+      }, i * 3400));
+    });
+    return true;
+  }
+  function idleTalk() {
+    var hired = hiredList();
+    if (!hired.length || currentView !== 'puesto' || document.hidden) return;
+    var r = Math.random(), h = hired[Math.floor(Math.random() * hired.length)];
+    if (r < 0.2) { showBubble(h.name, pick('zone' + S.stage, ZONE_SAY[S.stage])); return; }
+    if (r < 0.4 && startChat()) return;
+    helperSay(h, 'any');
+  }
+  setInterval(idleTalk, 11000);
+
+  // Reacciones: se guardan y se dicen en el puesto (si estás en otra pestaña, al volver, dentro de 90 s).
+  function react(kind, who) {
+    var now = Date.now();
+    if (kind !== 'hire' && kind !== 'zone' && now - lastReactAt < 8000) return;
+    lastReactAt = now;
+    pendingReact = { kind: kind, who: who || '', t: now };
+    if (currentView === 'puesto') sayPending();
+  }
+  function sayPending() {
+    var p = pendingReact, hired = hiredList();
+    pendingReact = null;
+    if (!p || !hired.length || Date.now() - p.t > 90000) return;
+    var h = (p.who && helperLv(p.who) > 0 && helperById(p.who)) || hired[Math.floor(Math.random() * hired.length)];
+    stopChat();
+    helperSay(h, p.kind);
+  }
+
+  // Tocar a un ayudante o a un cliente en la escena.
+  sceneEl.addEventListener('click', function (e) {
+    var n = e.target.closest ? e.target.closest('[data-h],[data-c]') : null;
+    if (!n) return;
+    var hid = n.getAttribute('data-h'), h = hid ? helperById(hid) : null, now = Date.now(), tip = 0;
+    var key = hid || 'cust';
+    stopChat();
+    S.stats.talks += 1;
+    bump('talk', 1);
+    if ((tipAt[key] || 0) <= now) {
+      tip = Math.max(10, Math.round(tapValue() * (h ? 4 : 2)));
+      tipAt[key] = now + (h ? 20000 : 8000);
+      grant(tip);
+      FX.coins(e.clientX, e.clientY, 3);
+    }
+    Snd.pop(4);
+    FX.ring(e.clientX, e.clientY, '#E3A41A');
+    if (h) showBubble(h.name, pick(hid + 'tap', h.say.tap), tip);
+    else showBubble('Cliente', pick('cust', CUST_SAY), tip);
+    save();
+  });
+
 
   /* ---------- Mejoras ---------- */
   var upRefs = {};
@@ -2253,6 +2476,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     S.lv[u.id] = level(u) + 1;
     S.stats.bought += 1;
     bump('buy', 1);
+    react('buy');
     Snd.buy();
     FX.pop(upRefs[u.id].btn);
     save();
@@ -2266,14 +2490,23 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     HELPERS.forEach(function (h) {
       var card = el('div', 'hcard off');
       var head = el('div', 'hhead');
-      var av = el('div', 'avatar');
+      var av = el('button', 'avatar');
+      av.type = 'button';
+      av.setAttribute('aria-label', 'Hablar con ' + h.name);
       av.innerHTML = personSVG(h);
       var info = el('div');
       var h3 = el('h3');
       h3.appendChild(el('span', null, h.name));
       h3.appendChild(el('small', null, h.role));
       info.appendChild(h3);
-      info.appendChild(el('p', 'quote', '“' + h.quote + '”'));
+      var q = el('p', 'quote', '“' + h.quote + '”');
+      info.appendChild(q);
+      av.addEventListener('click', function () {
+        var hired = helperLv(h.id) > 0;
+        q.textContent = '“' + pick(h.id + 'card', hired ? h.say.any.concat(h.say.tap) : h.say.hire) + '”';
+        Snd.pop(3);
+        if (hired) { S.stats.talks += 1; bump('talk', 1); }
+      });
       head.appendChild(av);
       head.appendChild(info);
       var eff = el('p', 'heff');
@@ -2304,6 +2537,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     var hc = FX.center(hRefs[h.id].btn);
     FX.confetti(l === 0 ? 30 : 14, hc[0], hc[1]);
     toast(l === 0 ? h.name + ' se sumó al equipo' : h.name + ' subió a nivel ' + (l + 1));
+    react(l === 0 ? 'hire' : 'buy', h.id);
     sceneKey = '';
     save();
     render();
@@ -2445,12 +2679,16 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   var GAME = {
     rush: { cd: RUSH_CD, name: 'Hora pico' },
     memoria: { cd: MEM_CD, name: 'Memoria de yuyos' },
-    pedidos: { cd: ORD_CD, name: 'Pedidos' }
+    pedidos: { cd: ORD_CD, name: 'Pedidos' },
+    orden: { cd: SORT_CD, name: 'Ordenar el estante' },
+    secuencia: { cd: SEQ_CD, name: 'Secuencia de guampas' }
   };
   var GREFS = {
     rush: { info: $('rushInfo'), start: $('rushStart'), startText: $('rushStartText'), skip: $('rushSkip'), intro: $('rushIntro'), play: $('rushPlay') },
     memoria: { info: $('memInfo'), start: $('memStart'), startText: $('memStartText'), skip: $('memSkip'), intro: $('memIntro'), play: $('memPlay') },
-    pedidos: { info: $('ordInfo'), start: $('ordStart'), startText: $('ordStartText'), skip: $('ordSkip'), intro: $('ordIntro'), play: $('ordPlay') }
+    pedidos: { info: $('ordInfo'), start: $('ordStart'), startText: $('ordStartText'), skip: $('ordSkip'), intro: $('ordIntro'), play: $('ordPlay') },
+    orden: { info: $('srtInfo'), start: $('srtStart'), startText: $('srtStartText'), skip: $('srtSkip'), intro: $('srtIntro'), play: $('srtPlay') },
+    secuencia: { info: $('seqInfo'), start: $('seqStart'), startText: $('seqStartText'), skip: $('seqSkip'), intro: $('seqIntro'), play: $('seqPlay') }
   };
   function gameCooldown(k) { return Math.max(0, (S.games[k] - Date.now()) / 1000); }
   function gameReady(k) { return gameCooldown(k) <= 0 && !pendFor(k); }
@@ -2458,6 +2696,8 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     var u = 'Cada punto vale ₲ ' + fmt(gameUnit()) + '. ';
     if (k === 'rush') return u + 'Mejor puntaje: ' + S.stats.bestScore + '.';
     if (k === 'memoria') return u + 'Mejor partida: ' + S.stats.bestMem + ' puntos.';
+    if (k === 'orden') return u + 'Mejor puntaje: ' + S.stats.bestOrden + '.';
+    if (k === 'secuencia') return u + 'Mejor partida: ' + S.stats.bestSeq + ' rondas.';
     return u + 'Mejor puntaje: ' + S.stats.bestOrders + '.';
   }
   function renderGameIntro(k) {
@@ -2471,13 +2711,14 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   }
   function gamesAvailable() {
     var n = 0;
-    ['rush', 'memoria', 'pedidos'].forEach(function (k) { if (gameReady(k) && activeGame !== k) n++; });
+    GAME_KEYS.forEach(function (k) { if (gameReady(k) && activeGame !== k) n++; });
     if (!S.wheel.freeUsed) n++;
     return n;
   }
   function finishGame(k, score, text) {
     S.games[k] = Date.now() + GAME[k].cd;
     bump('rush', 1);
+    react('game');
     var payout = Math.round(gameUnit() * score);
     if (payout > 0) addPend(k, GAME[k].name + ' terminada', text, payout);
     else toast('Esta vez no hubo premio. Probá de nuevo.');
@@ -2898,14 +3139,193 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     watch('pedidos', function () { S.games.pedidos = 0; startPedidos(); });
   });
 
+  /* ---------- Ordenar el estante ---------- */
+  var srtScoreEl = $('srtScore'), srtMovesEl = $('srtMoves'), srtTimeEl = $('srtTime'), srtBar = $('srtBar'), srtRow = $('srtRow');
+  var SO = { on: false, t0: 0, tick: 0, score: 0, rounds: 0, swaps: 0, min: 0, sel: -1, lock: false, vals: [], art: [] };
+  var GUAMPAS = COLLECTION.filter(function (c) { return c.type === 'g'; });
+
+  function sortedOk(v) { return v.every(function (x, i) { return x === i + 1; }); }
+  // Cambios mínimos para ordenar = cantidad de piezas − ciclos de la permutación.
+  function minSwaps(v) {
+    var seen = [], cycles = 0;
+    v.forEach(function (x, i) {
+      if (seen[i]) return;
+      cycles += 1;
+      for (var j = i; !seen[j]; j = v[j] - 1) seen[j] = true;
+    });
+    return v.length - cycles;
+  }
+  function sortRound() {
+    var n = Math.min(6, 4 + Math.floor(SO.rounds / 2)), v = [], i;
+    for (i = 1; i <= n; i++) v.push(i);
+    do { v = shuffle(v); } while (sortedOk(v));
+    SO.vals = v; SO.art = shuffle(GUAMPAS).slice(0, n);
+    SO.swaps = 0; SO.min = minSwaps(v); SO.sel = -1; SO.lock = false;
+    srtRow.classList.remove('done');
+    drawSort();
+  }
+  function drawSort() {
+    var n = SO.vals.length;
+    srtRow.style.setProperty('--n', n);
+    srtRow.innerHTML = '';
+    SO.vals.forEach(function (v, i) {
+      var b = el('button', SO.sel === i ? 'sel' : '');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Guampa de tamaño ' + v + ' de ' + n + ', lugar ' + (i + 1));
+      var w = Math.round(50 + (v - 1) * 50 / (n - 1));
+      b.innerHTML = guampaSVG(SO.art[v - 1]).replace('<svg ', '<svg style="width:' + w + '%" ') + '<span>' + v + '</span>';
+      b.addEventListener('click', function (e) { sortTap(i, e.detail === 0); });
+      srtRow.appendChild(b);
+    });
+    srtMovesEl.textContent = 'Cambios ' + SO.swaps + '/' + SO.min;
+    srtScoreEl.textContent = SO.score + ' pts';
+  }
+  function sortTap(i, kb) {
+    if (!SO.on || SO.lock) return;
+    if (SO.sel < 0) { SO.sel = i; Snd.flip(); }
+    else if (SO.sel === i) { SO.sel = -1; }
+    else {
+      var t = SO.vals[i]; SO.vals[i] = SO.vals[SO.sel]; SO.vals[SO.sel] = t;
+      SO.sel = -1; SO.swaps += 1;
+      Snd.pop(SO.swaps);
+      if (sortedOk(SO.vals)) {
+        SO.score += (SO.vals.length - 1) + (SO.swaps <= SO.min ? 2 : 0);
+        SO.rounds += 1;
+        S.stats.sorts += 1;
+        SO.lock = true;
+        srtRow.classList.add('done');
+        Snd.win();
+        if (fxOk()) { var c = FX.center(srtRow); FX.burst(c[0], c[1], '#2E9C6A', 10); }
+        setTimeout(function () { if (SO.on) sortRound(); }, 500);
+      }
+    }
+    drawSort();
+    if (kb && srtRow.children[i]) srtRow.children[i].focus();
+  }
+  function startOrden() {
+    if (activeGame || !gameReady('orden')) return;
+    activeGame = 'orden';
+    SO.on = true; SO.t0 = performance.now(); SO.score = 0; SO.rounds = 0;
+    GREFS.orden.intro.hidden = true;
+    GREFS.orden.play.hidden = false;
+    srtBar.style.width = '100%';
+    srtTimeEl.textContent = Math.round(SORT_MS / 1000) + ' s';
+    sortRound();
+    SO.tick = setInterval(srtTick, 100);
+  }
+  function srtTick() {
+    var p = (performance.now() - SO.t0) / SORT_MS;
+    if (p >= 1) { endOrden(); return; }
+    srtBar.style.width = ((1 - p) * 100) + '%';
+    srtTimeEl.textContent = Math.ceil(SORT_MS / 1000 * (1 - p)) + ' s';
+  }
+  function endOrden() {
+    if (!SO.on) return;
+    SO.on = false;
+    clearInterval(SO.tick);
+    GREFS.orden.play.hidden = true;
+    GREFS.orden.intro.hidden = false;
+    activeGame = null;
+    S.stats.bestOrden = Math.max(S.stats.bestOrden, SO.score);
+    finishGame('orden', SO.score, 'Ordenaste ' + SO.rounds + (SO.rounds === 1 ? ' estante' : ' estantes') + ' (' + SO.score + ' puntos).');
+  }
+  GREFS.orden.start.addEventListener('click', startOrden);
+  GREFS.orden.skip.addEventListener('click', function () {
+    watch('orden', function () { S.games.orden = 0; startOrden(); });
+  });
+
+  /* ---------- Secuencia de guampas ---------- */
+  var seqRoundEl = $('seqRound'), seqStatusEl = $('seqStatus'), seqPadsEl = $('seqPads');
+  var PADS = [
+    { bg: '#2E7A3D', fg: '#FFFFFF', f: 262, name: 'verde' },
+    { bg: '#E3A41A', fg: '#2B1D00', f: 330, name: 'dorada' },
+    { bg: '#C0483A', fg: '#FFFFFF', f: 392, name: 'roja' },
+    { bg: '#1B6F93', fg: '#FFFFFF', f: 523, name: 'azul' }
+  ];
+  var SQ = { on: false, seq: [], step: 0, done: 0, input: false, timers: [] };
+  var padEls = [];
+  function buildSeqPads() {
+    PADS.forEach(function (p, i) {
+      var b = el('button', 'seqpad', String(i + 1));
+      b.type = 'button';
+      b.style.background = p.bg;
+      b.style.color = p.fg;
+      b.setAttribute('aria-label', 'Guampa ' + p.name + ', número ' + (i + 1));
+      b.addEventListener('click', function () { seqTap(i); });
+      seqPadsEl.appendChild(b);
+      padEls.push(b);
+    });
+  }
+  function seqLater(fn, ms) { SQ.timers.push(setTimeout(fn, ms)); }
+  function lightPad(i, ms) {
+    padEls[i].classList.add('lit');
+    Snd.tone(PADS[i].f, 0.3, 'triangle', 0.08);
+    seqLater(function () { padEls[i].classList.remove('lit'); }, ms);
+  }
+  function seqNext() {
+    SQ.seq.push(Math.floor(Math.random() * PADS.length));
+    SQ.step = 0;
+    SQ.input = false;
+    seqRoundEl.textContent = 'Ronda ' + SQ.seq.length;
+    seqStatusEl.textContent = 'Mirá la secuencia';
+    var gap = Math.max(380, 700 - SQ.seq.length * 30);
+    SQ.seq.forEach(function (p, k) { seqLater(function () { lightPad(p, gap * 0.6); }, 700 + k * gap); });
+    seqLater(function () { SQ.input = true; seqStatusEl.textContent = 'Tu turno'; }, 700 + SQ.seq.length * gap);
+  }
+  function seqTap(i) {
+    if (!SQ.on || !SQ.input) return;
+    lightPad(i, 160);
+    if (i !== SQ.seq[SQ.step]) {
+      SQ.input = false;
+      Snd.miss();
+      seqStatusEl.textContent = 'Te equivocaste';
+      seqLater(endSeq, 700);
+      return;
+    }
+    SQ.step += 1;
+    if (SQ.step < SQ.seq.length) return;
+    SQ.input = false;
+    SQ.done = SQ.seq.length;
+    Snd.win();
+    if (SQ.done >= SEQ_MAX) { seqStatusEl.textContent = '¡Las completaste todas!'; seqLater(endSeq, 900); }
+    else { seqStatusEl.textContent = '¡Bien!'; seqLater(seqNext, 900); }
+  }
+  function startSeq() {
+    if (activeGame || !gameReady('secuencia')) return;
+    activeGame = 'secuencia';
+    SQ.on = true; SQ.seq = []; SQ.done = 0; SQ.timers = [];
+    GREFS.secuencia.intro.hidden = true;
+    GREFS.secuencia.play.hidden = false;
+    seqNext();
+  }
+  function endSeq() {
+    if (!SQ.on) return;
+    SQ.on = false;
+    SQ.timers.forEach(clearTimeout);
+    SQ.timers = [];
+    padEls.forEach(function (p) { p.classList.remove('lit'); });
+    GREFS.secuencia.play.hidden = true;
+    GREFS.secuencia.intro.hidden = false;
+    activeGame = null;
+    S.stats.bestSeq = Math.max(S.stats.bestSeq, SQ.done);
+    var pts = SQ.done * 3 + (SQ.done >= SEQ_MAX ? 5 : 0);
+    finishGame('secuencia', pts, 'Repetiste ' + SQ.done + (SQ.done === 1 ? ' ronda' : ' rondas') + ' (' + pts + ' puntos).');
+  }
+  GREFS.secuencia.start.addEventListener('click', startSeq);
+  GREFS.secuencia.skip.addEventListener('click', function () {
+    watch('secuencia', function () { S.games.secuencia = 0; startSeq(); });
+  });
+
   function endActiveGame() {
     if (activeGame === 'rush') endRush();
     else if (activeGame === 'memoria') endMemoria(false);
     else if (activeGame === 'pedidos') endPedidos();
+    else if (activeGame === 'orden') endOrden();
+    else if (activeGame === 'secuencia') endSeq();
   }
 
   /* ---------- Selector de minijuegos ---------- */
-  var gamePanels = { rush: $('game-rush'), ruleta: $('game-ruleta'), memoria: $('game-memoria'), pedidos: $('game-pedidos') };
+  var gamePanels = { rush: $('game-rush'), ruleta: $('game-ruleta'), memoria: $('game-memoria'), pedidos: $('game-pedidos'), orden: $('game-orden'), secuencia: $('game-secuencia') };
   var segBtns = {};
   var currentGame = 'rush';
   Array.prototype.forEach.call(document.querySelectorAll('#seg button'), function (b) { segBtns[b.getAttribute('data-game')] = b; });
@@ -2918,9 +3338,9 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     });
   }
   Object.keys(segBtns).forEach(function (k) { segBtns[k].addEventListener('click', function () { setGame(k); }); });
-  var pips = { rush: $('pipRush'), ruleta: $('pipRuleta'), memoria: $('pipMemoria'), pedidos: $('pipPedidos') };
+  var pips = { rush: $('pipRush'), ruleta: $('pipRuleta'), memoria: $('pipMemoria'), pedidos: $('pipPedidos'), orden: $('pipOrden'), secuencia: $('pipSecuencia') };
   function renderGames() {
-    ['rush', 'memoria', 'pedidos'].forEach(function (k) {
+    GAME_KEYS.forEach(function (k) {
       renderGameIntro(k);
       pips[k].hidden = !(gameReady(k) && activeGame !== k);
     });
@@ -2996,6 +3416,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     S.pulls.opened += 1;
     S.stats.baskets += 1;
     bump('basket', 1);
+    react('pull');
     collKey = '';
     Snd.win();
     save();
@@ -3194,6 +3615,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
     });
     if (name === 'metas') { metasSigKey = ''; renderMetas(); }
     if (name !== 'puesto') bubbleEl.hidden = true;
+    else sayPending();
     var vw = views[name]; vw.classList.remove('enter'); void vw.offsetWidth; vw.classList.add('enter');
     sceneRun();
     render();
@@ -3270,6 +3692,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
   buildUpgrades();
   buildHelpers();
   buildRushGrid();
+  buildSeqPads();
   renderMute();
   renderSettings();
   $('splashArt').innerHTML = guampaSVG(COLLECTION[0]) + '<i class="steam s1"></i><i class="steam s2"></i><i class="steam s3"></i>';

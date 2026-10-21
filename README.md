@@ -2,6 +2,13 @@
 
 Juego de tocar para ganar guaraníes, con anuncios recompensados de AdMob.
 
+## Novedades de la versión 5
+
+- **Más vida en el puesto**: unas 200 frases nuevas. Los ayudantes hablan según la hora y la zona, charlan entre ellos y reaccionan cuando comprás, jugás, abrís una canasta, mirás un anuncio o cambiás de zona.
+- **Tocar a la gente**: al tocar a un ayudante o a un cliente en la escena contestan y, cada tanto, dejan una propina. En la pestaña Equipo también se puede tocar la cara de cada ayudante.
+- **Minijuegos nuevos**: "Ordenar el estante" (cambiar guampas de lugar de la más chica a la más grande, con puntos extra por usar pocos cambios) y "Secuencia de guampas" (repetir la secuencia de luces y sonidos).
+- Nueva misión diaria ("Charlá con la gente del puesto") y 3 logros nuevos.
+
 ## Cómo se compila
 
 Cada vez que se sube un cambio a la rama `main` (o se ejecuta a mano desde la pestaña **Actions**), GitHub arma el proyecto de Android, compila un APK de prueba y lo publica en **Releases**. Desde el celular se descarga e instala directamente.
