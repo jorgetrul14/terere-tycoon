@@ -1885,10 +1885,10 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
        'unavailable' no había anuncio disponible (sin internet o sin anuncio para mostrar)
      Dentro de la app de Android usa AdMob. En un navegador usa un anuncio simulado. */
 
-  // IDs de prueba oficiales de Google. Antes de publicar se cambian por los tuyos
-  // y ADMOB_TESTING pasa a false.
-  var ADMOB_TESTING = true;
-  var REWARDED_AD_ID = 'ca-app-pub-3940256099942544/5224354917';
+  // Anuncios reales de AdMob (ID de la unidad "Premio por video"). Para volver a los anuncios de prueba de Google:
+  // ADMOB_TESTING = true y el ID de prueba 'ca-app-pub-3940256099942544/5224354917'.
+  var ADMOB_TESTING = false;
+  var REWARDED_AD_ID = 'ca-app-pub-4029429267067973/3769897532';
 
   var Cap = window.Capacitor;
   var native = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
@@ -3688,7 +3688,7 @@ h2 { font: 400 1.25rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01e
 
   /* ---------- Arranque ---------- */
   var adNote = $('adNote');
-  if (native && adNote) adNote.textContent = 'Anuncios de prueba de Google. En la versión publicada serán anuncios reales de AdMob.';
+  if (native && adNote) adNote.textContent = 'Los anuncios son opcionales y te dan premios extra.';
   buildUpgrades();
   buildHelpers();
   buildRushGrid();

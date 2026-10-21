@@ -36,7 +36,9 @@ Cada vez que se sube un cambio a la rama `main` (o se ejecuta a mano desde la pe
 
 ## Anuncios
 
-Ahora usa los IDs de prueba oficiales de Google, así que nunca se muestran anuncios reales ni se generan ingresos. Para pasar a anuncios reales hay que:
+Usa anuncios recompensados **reales** de AdMob:
 
-1. Cambiar `REWARDED_AD_ID` y poner `ADMOB_TESTING = false` en `www/index.html`.
-2. Guardar el ID de la app de AdMob como variable `ADMOB_APP_ID` en el repositorio (Settings → Secrets and variables → Actions → Variables).
+- ID de la app: `ca-app-pub-4029429267067973~9509309371` (se conecta en `scripts/patch-android.py`).
+- Unidad "Premio por video": `ca-app-pub-4029429267067973/3769897532` (`REWARDED_AD_ID` en `www/index.html`).
+
+Reglas importantes: no tocar nunca los anuncios reales en el propio celular (registrar el celular como dispositivo de prueba en AdMob) y, si hace falta volver a los anuncios de prueba de Google, poner `ADMOB_TESTING = true` y el ID de prueba que figura en el comentario de `www/index.html`. En el navegador el juego usa un anuncio simulado.

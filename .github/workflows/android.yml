@@ -54,5 +54,5 @@ jobs:
           gh release create "prueba-${{ github.run_number }}" terere-tycoon-prueba.apk \
             --repo "${{ github.repository }}" \
             --title "Prueba ${{ github.run_number }}" \
-            --notes "APK de prueba con anuncios de prueba de Google." \
+            --notes "APK de prueba con anuncios reales de AdMob. No toques los anuncios en tu propio celular." \
             --prerelease

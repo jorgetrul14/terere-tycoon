@@ -2,15 +2,16 @@
 """Conecta AdMob con el proyecto de Android que genera Capacitor.
 
 Agrega el ID de tu app de AdMob en AndroidManifest.xml y strings.xml.
-Por defecto usa el ID de PRUEBA de Google. Para usar el tuyo:
+Por defecto usa el ID real de la app en AdMob (Tereré Tycoon). Para usar otro:
     ADMOB_APP_ID="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY" python3 scripts/patch-android.py
 """
 import os
 import pathlib
 import re
 
-TEST_APP_ID = "ca-app-pub-3940256099942544~3347511713"
-app_id = os.environ.get("ADMOB_APP_ID", "").strip() or TEST_APP_ID
+# ID de prueba de Google (por si hace falta volver a anuncios de prueba): ca-app-pub-3940256099942544~3347511713
+APP_ID = "ca-app-pub-4029429267067973~9509309371"
+app_id = os.environ.get("ADMOB_APP_ID", "").strip() or APP_ID
 
 root = pathlib.Path("android/app/src/main")
 
